@@ -163,15 +163,25 @@ def build_one(pet_id, builder, out_dir, skip_export, previews):
 # ---------------------------------------------------------------------------
 
 
-def render_sheet(entries, builders, path, columns=6, cell=300):
+def render_sheet(entries, builders, path, columns=0, cell=300):
     """
     Build every pet into one scene on a grid and render it as a single image.
 
     Reviewing a hundred creatures one PNG at a time is impractical; one sheet
     makes an outlier -- wrong scale, missing head, black material -- obvious at
     a glance.
+
+    `columns` defaults to whatever keeps the sheet roughly square. A fixed six
+    columns turns the full 107-pet roster into a 1:3 ribbon that every image
+    viewer downscales into uselessness, which defeats the entire point.
+
+    Note that a full-roster sheet re-runs every generator and then renders a
+    very large image; it is minutes of work, not seconds. Per-biome sheets are
+    the ones to use while iterating.
     """
     kit.reset_scene()
+    if columns <= 0:
+        columns = max(4, int(math.ceil(math.sqrt(len(entries) * 1.6))))
     rows = (len(entries) + columns - 1) // columns
     spacing = 1.75
     spacing_y = 1.6
@@ -203,8 +213,11 @@ def render_sheet(entries, builders, path, columns=6, cell=300):
         bpy.context.view_layer.update()
         kit.protect(root)
 
-    width = int(cell * columns)
-    height = int(cell * rows)
+    # Cap the long edge: past ~2600px the sheet gets downscaled for viewing
+    # anyway, so extra pixels cost render time and buy nothing.
+    scale = min(1.0, 2600.0 / max(cell * columns, cell * rows))
+    width = int(cell * columns * scale)
+    height = int(cell * rows * scale)
     _render_ortho_grid(path, columns, rows, spacing, spacing_y, rows, width, height)
 
 

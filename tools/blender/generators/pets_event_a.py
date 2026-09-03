@@ -206,9 +206,11 @@ def build_mallet_sentry():
         head.append(bk.slab("head.rivet.%s" % side, (0.03, 0.05, 0.05),
                             (sign * 0.383, head_at[1] + 0.05, head_at[2] + 0.06),
                             color=iron_dk))
-    # A painted stripe around the middle: novelty, not realism.
-    head.append(bk.slab("head.stripe", (0.15, 0.235, 0.225),
-                        (0, head_at[1], head_at[2]), color=paint))
+    # Painted bands sit OUTBOARD of the face, not across it -- a stripe
+    # through the middle turns the eyes into part of the paintwork.
+    for side, sign in (("L", 1), ("R", -1)):
+        head.append(bk.slab("head.stripe.%s" % side, (0.07, 0.235, 0.225),
+                            (sign * 0.21, head_at[1], head_at[2]), color=paint))
     # Face painted on the front of the mallet head.
     head += bk.eyes("head.eye", head_at, head_dims, spacing=0.30, height=0.035,
                     size=0.058, style="white", iris="#241a14", pupil_scale=0.6)
@@ -288,7 +290,7 @@ def build_peelfin():
                             (sign * 0.157, -0.10, 0.36), color=pale))
     # Dorsal fin -- the one part that says "dolphin" from every angle.
     body.append(bk.wedge("body.dorsal", (0.055, 0.22, 0.28),
-                         (0, -0.14, 0.74), rot=(-28, 0, 0),
+                         (0, -0.22, 0.73), rot=(-28, 0, 0),
                          color=blue_dk, taper=0.66))
 
     # -- head: melon, long rostrum, and the permanent dolphin smile --------
@@ -315,12 +317,16 @@ def build_peelfin():
                          (0, 0.34, 0.74), color=peel))
     head.append(bk.slab("head.peelcap.rim", (0.33, 0.31, 0.028),
                         (0, 0.34, 0.688), color=peel_dk))
-    head.append(bk.wedge("head.peel.brow", (0.15, 0.11, 0.20),
-                         (0, 0.52, 0.71), rot=(-42, 0, 0), color=peel, taper=0.45))
-    head.append(bk.wedge("head.peel.back", (0.15, 0.11, 0.30),
-                         (0, 0.16, 0.73), rot=(56, 0, 0), color=peel, taper=0.45))
-    head.append(bk.block("head.stem", (0.055, 0.055, 0.09),
-                         (0, 0.32, 0.82), color=stem))
+    # The back strip DROOPS. A wedge grows along +Z, so anything under 90
+    # degrees of X rotation stands up like an ear instead of falling like peel.
+    back_strip = bk.block("head.peel.back", (0.15, 0.12, 0.30),
+                          (0, 0.15, 0.59), rot=(16, 0, 0), color=peel)
+    kit.taper(back_strip, axis="Z", at_min=0.55, at_max=1.0)
+    head.append(back_strip)
+    head.append(bk.slab("head.peel.back.tip", (0.10, 0.09, 0.045),
+                        (0, 0.11, 0.45), color=inner))
+    head.append(bk.block("head.stem", (0.06, 0.06, 0.10),
+                         (0, 0.32, 0.84), color=stem))
 
     peel_ears = []
     for side, sign in (("L", 1), ("R", -1)):
@@ -371,8 +377,8 @@ def build_scorpio():
     kit.reset_scene()
     root = kit.empty("root")
 
-    chitin = "#15161d"
-    chitin_lt = "#31353f"
+    chitin = "#20222e"
+    chitin_lt = "#454b60"
     gold = "#e8b23c"
     gold_lt = "#ffdc84"
     amber = "#ffb020"
@@ -380,53 +386,55 @@ def build_scorpio():
     # -- mesosoma: three deep plates, each with a gold trailing edge --------
     body = []
     for i, (dy, w, d, h) in enumerate((
-        (-0.24, 0.36, 0.24, 0.20),
-        (-0.02, 0.42, 0.24, 0.23),
-        (0.20, 0.38, 0.22, 0.21),
+        (-0.24, 0.38, 0.24, 0.24),
+        (-0.02, 0.44, 0.24, 0.27),
+        (0.20, 0.40, 0.22, 0.24),
     )):
-        at = (0, dy, 0.40)
+        at = (0, dy, 0.42)
         body.append(bk.block("body.seg%d" % i, (w, d, h), at, color=chitin))
-        body.append(bk.slab("body.trim%d" % i, (w * 0.96, 0.04, h * 0.9),
-                            (0, dy - d * 0.5, 0.40), color=gold))
-        body.append(bk.slab("body.spine%d" % i, (0.08, d * 0.8, 0.03),
-                            (0, dy, 0.40 + h * 0.5), color=gold))
+        # One narrow gold keel down the spine. That is the whole dorsal
+        # budget -- anything wider and the shell stops reading as black.
+        body.append(bk.slab("body.spine%d" % i, (0.075, d * 0.92, 0.04),
+                            (0, dy, 0.425 + h * 0.5), color=gold))
+        body.append(bk.slab("body.seam%d" % i, (w * 0.9, 0.035, h * 0.85),
+                            (0, dy - d * 0.5, 0.42), color=chitin_lt))
         for side, sign in (("L", 1), ("R", -1)):
             body.append(bk.slab(
                 "body.gloss%d.%s" % (i, side), (0.025, d * 0.7, h * 0.4),
-                (sign * w * 0.5, dy, 0.40 + h * 0.16), color=chitin_lt))
+                (sign * w * 0.5, dy, 0.42 + h * 0.16), color=chitin_lt))
 
     # -- head / prosoma: pushed well forward of the plates ------------------
-    head_dims = (0.34, 0.24, 0.20)
-    head_at = (0, 0.44, 0.41)
+    head_dims = (0.34, 0.24, 0.22)
+    head_at = (0, 0.44, 0.44)
     head = [bk.block("head.prosoma", head_dims, head_at, color=chitin)]
-    head.append(bk.slab("head.crown", (0.30, 0.20, 0.035),
-                        (0, 0.44, 0.515), color=gold))
+    head.append(bk.slab("head.crown", (0.13, 0.21, 0.045),
+                        (0, 0.44, 0.555), color=gold))
     head += bk.eyes("head.eye", head_at, head_dims, spacing=0.42, height=0.04,
                     size=0.055, style="glow", iris=amber)
     head += bk.eyes("head.eye.side", head_at, head_dims, spacing=0.82,
                     height=0.0, size=0.032, style="glow", iris=gold_lt)
     for side, sign in (("L", 1), ("R", -1)):
         head.append(bk.wedge("head.chelicera.%s" % side, (0.05, 0.05, 0.11),
-                             (sign * 0.055, 0.58, 0.36), rot=(-96, 0, 0),
+                             (sign * 0.055, 0.58, 0.39), rot=(-96, 0, 0),
                              color=gold, taper=0.7))
 
     # -- pincers: the widest thing on the model, held forward and open -----
     def pincer(side, sign):
-        shoulder = (sign * 0.17, 0.44, 0.40)
-        elbow = (sign * 0.34, 0.58, 0.37)
+        shoulder = (sign * 0.18, 0.46, 0.44)
+        elbow = (sign * 0.36, 0.60, 0.40)
         parts = [
-            _strut("arm.%s.coxa" % side, shoulder, elbow, 0.085, color=chitin),
-            bk.block("arm.%s.palm" % side, (0.18, 0.24, 0.13),
-                     (sign * 0.38, 0.73, 0.36), rot=(0, 0, -sign * 14),
+            _strut("arm.%s.coxa" % side, shoulder, elbow, 0.095, color=chitin),
+            bk.block("arm.%s.palm" % side, (0.21, 0.28, 0.16),
+                     (sign * 0.41, 0.77, 0.39), rot=(0, 0, -sign * 14),
                      color=chitin),
-            bk.slab("arm.%s.palm.trim" % side, (0.19, 0.06, 0.12),
-                    (sign * 0.39, 0.83, 0.36), rot=(0, 0, -sign * 14),
+            bk.slab("arm.%s.palm.trim" % side, (0.22, 0.07, 0.15),
+                    (sign * 0.42, 0.89, 0.39), rot=(0, 0, -sign * 14),
                     color=gold),
-            bk.wedge("arm.%s.finger.fix" % side, (0.055, 0.055, 0.21),
-                     (sign * 0.45, 0.95, 0.375), rot=(-84, 0, -sign * 18),
+            bk.wedge("arm.%s.finger.fix" % side, (0.06, 0.06, 0.24),
+                     (sign * 0.49, 1.02, 0.41), rot=(-84, 0, -sign * 18),
                      color=chitin_lt, taper=0.7),
-            bk.wedge("arm.%s.finger.mov" % side, (0.055, 0.055, 0.18),
-                     (sign * 0.31, 0.94, 0.335), rot=(-98, 0, sign * 16),
+            bk.wedge("arm.%s.finger.mov" % side, (0.06, 0.06, 0.20),
+                     (sign * 0.33, 1.01, 0.365), rot=(-98, 0, sign * 16),
                      color=gold, taper=0.7),
         ]
         merged = kit.join(parts, "arm.%s" % side)
@@ -439,12 +447,13 @@ def build_scorpio():
 
     # -- eight walking legs, grouped four per animation slot ----------------
     def walk_leg(name, sign, hy, out, back):
-        hip = (sign * 0.16, hy, 0.38)
-        knee = (sign * (0.16 + out), hy + back * 0.5, 0.50)
-        foot = (sign * (0.18 + out), hy + back, 0.02)
+        hip = (sign * 0.17, hy, 0.42)
+        knee = (sign * (0.17 + out), hy + back * 0.5, 0.52)
+        foot = (sign * (0.19 + out), hy + back, 0.02)
         parts = [
-            _strut(name + ".femur", hip, knee, 0.055, color=chitin_lt),
-            _strut(name + ".tibia", knee, foot, 0.045, color=chitin, taper=0.45),
+            _strut(name + ".femur", hip, knee, 0.07, color=chitin_lt),
+            _strut(name + ".tibia", knee, foot, 0.058, color=chitin_lt,
+                   taper=0.45),
         ]
         merged = kit.join(parts, name)
         kit.weld(merged)
@@ -453,10 +462,10 @@ def build_scorpio():
 
     front_l, front_r, back_l, back_r = [], [], [], []
     for i, (hy, out, back) in enumerate((
-        (0.28, 0.19, 0.14),
-        (0.13, 0.21, 0.05),
-        (-0.04, 0.21, -0.07),
-        (-0.21, 0.18, -0.16),
+        (0.26, 0.17, 0.05),
+        (0.11, 0.19, 0.0),
+        (-0.05, 0.19, -0.07),
+        (-0.21, 0.16, -0.15),
     )):
         left = walk_leg("leg.L%d" % i, 1, hy, out, back)
         right = _mirror(left, "leg.R%d" % i)
@@ -465,33 +474,35 @@ def build_scorpio():
 
     # -- metasoma: five segments arcing back, up and over the plates -------
     arc = [
-        (0, -0.38, 0.44), (0, -0.52, 0.54), (0, -0.57, 0.68),
-        (0, -0.48, 0.79), (0, -0.31, 0.83), (0, -0.14, 0.80),
+        (0, -0.40, 0.50), (0, -0.56, 0.66), (0, -0.56, 0.86),
+        (0, -0.38, 1.00), (0, -0.13, 1.03), (0, 0.12, 0.93),
     ]
     tail_parts = []
     for i in range(len(arc) - 1):
         t = i / float(len(arc) - 2)
         tail_parts.append(_strut("tail.seg%d" % i, arc[i], arc[i + 1],
-                                 0.125 - 0.035 * t, color=chitin))
+                                 0.15 - 0.04 * t, color=chitin))
+        # Slim gold rings between segments, not gold barrels: the arc has to
+        # stay a black chain with gold joints.
         tail_parts.append(bk.block("tail.knuckle%d" % i,
-                                   (0.135 - 0.035 * t, 0.05, 0.135 - 0.035 * t),
+                                   (0.155 - 0.04 * t, 0.045, 0.155 - 0.04 * t),
                                    arc[i + 1], color=gold))
-    tail_parts.append(bk.wedge("tail.stinger", (0.10, 0.10, 0.22),
-                               (0, -0.01, 0.72), rot=(-142, 0, 0),
+    tail_parts.append(bk.wedge("tail.stinger", (0.115, 0.115, 0.26),
+                               (0, 0.27, 0.84), rot=(-152, 0, 0),
                                color=gold_lt, taper=0.88))
-    tail_parts += bk.gem("tail.venom", (0, 0.095, 0.635), size=0.075,
-                         color=amber, strength=3.6)
+    tail_parts += bk.gem("tail.venom", (0, 0.395, 0.76), size=0.09,
+                         color=amber, strength=3.8)
 
     bk.assemble(root, {
-        "body": (body, (0, 0, 0.30)),
-        "head": (head, (0, 0.33, 0.36)),
+        "body": (body, (0, 0, 0.32)),
+        "head": (head, (0, 0.33, 0.38)),
         "arm.L": ([arm_l], tuple(arm_l.location)),
         "arm.R": ([arm_r], tuple(arm_r.location)),
-        "tail": (tail_parts, (0, -0.34, 0.42)),
-        "leg.FL": (front_l, (0.16, 0.20, 0.38)),
-        "leg.FR": (front_r, (-0.16, 0.20, 0.38)),
-        "leg.BL": (back_l, (0.16, -0.12, 0.38)),
-        "leg.BR": (back_r, (-0.16, -0.12, 0.38)),
+        "tail": (tail_parts, (0, -0.36, 0.48)),
+        "leg.FL": (front_l, (0.17, 0.20, 0.42)),
+        "leg.FR": (front_r, (-0.17, 0.20, 0.42)),
+        "leg.BL": (back_l, (0.17, -0.12, 0.42)),
+        "leg.BR": (back_r, (-0.17, -0.12, 0.42)),
     })
     return bk.finish(root)
 
@@ -518,27 +529,36 @@ def build_bellug():
     chime = "#fff3b8"
 
     # -- body: wide, short, and hanging low in the middle -------------------
-    body_dims = (0.50, 0.54, 0.46)
-    body_at = (0, -0.12, 0.56)
-    body = [bk.block("body.core", body_dims, body_at, color=white)]
-    body.append(bk.block("body.paunch", (0.44, 0.46, 0.20),
-                         (0, -0.10, 0.34), color=white))
-    body.append(bk.block("body.peduncle", (0.20, 0.22, 0.19),
-                         (0, -0.48, 0.54), color=shade))
+    body_dims = (0.52, 0.52, 0.48)
+    body_at = (0, -0.18, 0.56)
+    hull = bk.block("body.core", body_dims, body_at, color=white)
+    # Fat at the chest, narrowing to the flukes -- a beluga is a teardrop.
+    kit.taper(hull, axis="Y", at_min=0.68, at_max=1.0)
+    body = [hull]
+    body.append(bk.block("body.paunch", (0.46, 0.44, 0.20),
+                         (0, -0.16, 0.34), color=white))
+    body.append(bk.slab("body.cape", (0.34, 0.42, 0.045),
+                        (0, -0.20, 0.79), color=shade))
+    # A shaded groove where the melon meets the back -- without it the head
+    # and torso weld into one featureless white cube at icon size.
+    body.append(bk.block("body.neck.groove", (0.40, 0.05, 0.36),
+                         (0, 0.09, 0.60), color=shade))
+    body.append(bk.block("body.peduncle", (0.21, 0.24, 0.20),
+                         (0, -0.53, 0.54), color=shade))
     for side, sign in (("L", 1), ("R", -1)):
-        body.append(bk.slab("body.crease.%s" % side, (0.03, 0.38, 0.11),
-                            (sign * 0.252, -0.12, 0.43), color=shade))
-    body.append(bk.slab("body.dorsal.ridge", (0.11, 0.32, 0.04),
-                        (0, -0.20, 0.785), color=shade))
+        body.append(bk.slab("body.crease.%s" % side, (0.03, 0.38, 0.12),
+                            (sign * 0.262, -0.18, 0.42), color=shade))
 
     # -- head: a big soft melon set well forward, with a tiny happy face ---
-    head_dims = (0.42, 0.34, 0.38)
-    head_at = (0, 0.32, 0.66)
-    head = [bk.block("head.melon", head_dims, head_at, color=white)]
-    head.append(bk.block("head.crown", (0.34, 0.28, 0.13),
-                         (0, 0.28, 0.89), color=white))
-    head.append(bk.block("head.jaw", (0.32, 0.22, 0.11),
-                         (0, 0.42, 0.475), color=shade))
+    head_dims = (0.40, 0.36, 0.38)
+    head_at = (0, 0.34, 0.66)
+    melon = bk.block("head.melon", head_dims, head_at, color=white)
+    kit.taper(melon, axis="Z", at_min=1.0, at_max=0.86)
+    head = [melon]
+    head.append(bk.block("head.crown", (0.32, 0.30, 0.14),
+                         (0, 0.30, 0.90), color=white))
+    head.append(bk.block("head.jaw", (0.32, 0.24, 0.12),
+                         (0, 0.44, 0.475), color=shade))
     head += bk.eyes("head.eye", head_at, head_dims, spacing=0.52, height=0.045,
                     size=0.062, style="white", iris="#1a2430", pupil_scale=0.62)
     head += bk.cheeks("head.cheek", head_at, head_dims, spacing=0.74,
@@ -547,7 +567,7 @@ def build_bellug():
                    width=0.25, height=0.034, drop=-0.115, curve=0.05,
                    color="#2b3a4a", segments=5)
     head.append(bk.slab("head.blowhole", (0.06, 0.05, 0.02),
-                        (0, 0.22, 0.955), color=shade))
+                        (0, 0.24, 0.972), color=shade))
 
     # -- collar: a chunky gold band round the neck, bell hung under the chin
     collar = []
@@ -555,37 +575,39 @@ def build_bellug():
         angle = (i / 10.0) * math.tau
         collar.append(bk.block(
             "body.collar%d" % i, (0.085, 0.07, 0.085),
-            (math.sin(angle) * 0.255, 0.10, 0.57 + math.cos(angle) * 0.255),
+            (math.sin(angle) * 0.255, 0.13, 0.58 + math.cos(angle) * 0.255),
             rot=(0, math.degrees(angle), 0), color=gold,
         ))
-    collar.append(bk.block("body.collar.knot", (0.11, 0.08, 0.09),
-                           (0, 0.13, 0.84), color=gold_dk))
+    collar.append(bk.block("body.collar.knot", (0.12, 0.09, 0.10),
+                           (0, 0.16, 0.85), color=gold_dk))
     # The bell: strap, tapered cup, lip and a lit clapper -- hung out front
     # under the chin where the 3/4 hero angle can actually see it.
-    collar.append(bk.block("body.bell.strap", (0.05, 0.05, 0.12),
-                           (0, 0.36, 0.44), color=gold_dk))
-    collar.append(bk.wedge("body.bell.cup", (0.19, 0.18, 0.19),
-                           (0, 0.38, 0.30), rot=(180, 0, 0), color=gold,
+    collar.append(bk.block("body.bell.strap", (0.055, 0.055, 0.13),
+                           (0, 0.38, 0.44), color=gold_dk))
+    collar.append(bk.wedge("body.bell.cup", (0.21, 0.20, 0.20),
+                           (0, 0.40, 0.30), rot=(180, 0, 0), color=gold,
                            taper=0.44))
-    collar.append(bk.slab("body.bell.lip", (0.21, 0.20, 0.04),
-                          (0, 0.38, 0.208), color=gold_dk))
-    collar += bk.gem("body.bell.clapper", (0, 0.38, 0.185), size=0.085,
+    collar.append(bk.slab("body.bell.lip", (0.23, 0.22, 0.045),
+                          (0, 0.40, 0.203), color=gold_dk))
+    collar += bk.gem("body.bell.clapper", (0, 0.40, 0.185), size=0.09,
                      color=chime, strength=3.8)
-    collar += bk.ring("body.chime", (0, 0.38, 0.19), radius=0.155,
-                      thickness=0.014, tilt=0, color=chime, strength=2.0)
+    collar += bk.gem("body.spark.L", (0.24, 0.42, 0.30), size=0.055,
+                     color=chime, strength=3.2)
+    collar += bk.gem("body.spark.R", (-0.21, 0.38, 0.15), size=0.045,
+                     color=chime, strength=3.2)
     body += collar
 
-    fin_l, fin_r = bk.fins("fin", (0.24, 0.02, 0.42), size=0.30, thickness=0.06,
-                           color=shade, tilt=26)
-    fluke = bk.fin_tail("fin.tail", (0, -0.60, 0.54), size=0.36, thickness=0.06,
+    fin_l, fin_r = bk.fins("fin", (0.25, 0.02, 0.40), size=0.34, thickness=0.07,
+                           color=shade, tilt=34)
+    fluke = bk.fin_tail("fin.tail", (0, -0.66, 0.54), size=0.40, thickness=0.07,
                         color=shade, lobes=2)
 
     bk.assemble(root, {
-        "body": (body, (0, -0.12, 0.34)),
-        "head": (head, (0, 0.16, 0.50)),
+        "body": (body, (0, -0.18, 0.34)),
+        "head": (head, (0, 0.17, 0.50)),
         "fin.L": ([fin_l], tuple(fin_l.location)),
         "fin.R": ([fin_r], tuple(fin_r.location)),
-        "fin.tail": ([fluke], (0, -0.60, 0.54)),
+        "fin.tail": ([fluke], (0, -0.66, 0.54)),
     })
     return bk.finish(root)
 
@@ -627,11 +649,11 @@ def build_froggo():
     # torso; the pendant is the low point of the curve.
     for i in range(7):
         t = (i / 6.0) * 2 - 1
-        body.append(bk.block("body.chain%d" % i, (0.058, 0.05, 0.058),
-                             (t * 0.20, 0.115, 0.40 - (1 - t * t) * 0.10),
+        body.append(bk.block("body.chain%d" % i, (0.06, 0.05, 0.06),
+                             (t * 0.21, 0.118, 0.36 - (1 - t * t) * 0.11),
                              color=gold))
-    body.append(bk.slab("body.pendant", (0.09, 0.05, 0.09),
-                        (0, 0.125, 0.275), color=gold))
+    body.append(bk.slab("body.pendant", (0.10, 0.055, 0.10),
+                        (0, 0.128, 0.215), color=gold))
 
     # -- head: wider than the body, overhanging it forward and above -------
     head_dims = (0.60, 0.34, 0.25)
@@ -742,23 +764,26 @@ def build_mangowing():
     # -- body: the fruit. Tall, fat at the bottom, blushed on the shoulder --
     body_dims = (0.44, 0.40, 0.54)
     body_at = (0, -0.04, 0.58)
-    body = [bk.block("body.mango", body_dims, body_at, color=mango)]
-    body.append(bk.block("body.cheek", (0.40, 0.36, 0.20),
+    fruit = bk.block("body.mango", body_dims, body_at, color=mango)
+    # The mango profile: heavy at the base, pinched toward the stem.
+    kit.taper(fruit, axis="Z", at_min=1.14, at_max=0.70)
+    body = [fruit]
+    body.append(bk.block("body.cheek", (0.42, 0.38, 0.20),
                          (0, -0.02, 0.34), color=mango_y))
-    body.append(bk.block("body.blush", (0.40, 0.34, 0.18),
-                         (0, -0.09, 0.80), color=mango_r))
+    body.append(bk.block("body.blush", (0.30, 0.26, 0.16),
+                         (0, -0.07, 0.79), color=mango_r))
     body += bk.belly("body.breast", body_at, body_dims, color=mango_y, inset=0.74)
     for side, sign in (("L", 1), ("R", -1)):
-        body.append(bk.slab("body.seam.%s" % side, (0.03, 0.32, 0.34),
-                            (sign * 0.222, -0.04, 0.58), color=mango_dk))
+        body.append(bk.slab("body.seam.%s" % side, (0.03, 0.30, 0.26),
+                            (sign * 0.228, -0.04, 0.50), color=mango_dk))
     body.append(bk.block("body.neck", (0.19, 0.19, 0.14),
                          (0, 0.10, 0.88), color=mango_r))
     # Cosmic signature: a tilted halo orbiting the fruit, plus loose gems.
-    body += bk.ring("body.orbit", (0, -0.04, 0.56), radius=0.50,
-                    thickness=0.024, tilt=20, color=halo, strength=2.4)
-    body += bk.gem("body.spark.L", (0.44, -0.22, 0.92), size=0.09,
+    body += bk.ring("body.orbit", (0, -0.04, 0.40), radius=0.48,
+                    thickness=0.030, tilt=6, color=halo, strength=2.8)
+    body += bk.gem("body.spark.L", (0.46, -0.26, 0.98), size=0.095,
                    color=halo, strength=3.4)
-    body += bk.gem("body.spark.R", (-0.40, -0.28, 0.36), size=0.075,
+    body += bk.gem("body.spark.R", (-0.44, -0.30, 0.30), size=0.08,
                    color=mango_r, strength=3.0)
 
     # -- head: small, high and forward, so the fruit stays the body --------
@@ -771,12 +796,12 @@ def build_mangowing():
     head += bk.eyes("head.eye", head_at, head_dims, spacing=0.56, height=0.055,
                     size=0.072, style="white", iris="#1c1218", pupil_scale=0.5)
     # Hooked parrot beak: an upper curve, a hook tip, and a short lower jaw.
-    head.append(bk.wedge("head.beak.upper", (0.14, 0.16, 0.19),
-                         (0, 0.40, 0.99), rot=(-120, 0, 0), color=beak, taper=0.34))
-    head.append(bk.block("head.beak.hook", (0.065, 0.07, 0.10),
-                         (0, 0.415, 0.885), rot=(20, 0, 0), color=beak))
-    head.append(bk.slab("head.beak.lower", (0.115, 0.11, 0.05),
-                        (0, 0.365, 0.915), color=beak_lt))
+    head.append(bk.wedge("head.beak.upper", (0.17, 0.19, 0.22),
+                         (0, 0.42, 0.99), rot=(-120, 0, 0), color=beak, taper=0.34))
+    head.append(bk.block("head.beak.hook", (0.08, 0.085, 0.12),
+                         (0, 0.435, 0.865), rot=(20, 0, 0), color=beak))
+    head.append(bk.slab("head.beak.lower", (0.135, 0.13, 0.055),
+                        (0, 0.385, 0.905), color=beak_lt))
     # The gag: the mango's stem and leaf ARE the crest.
     head.append(bk.block("head.stem", (0.055, 0.055, 0.15),
                          (0, 0.14, 1.22), rot=(-14, 0, 0), color=stem))
@@ -790,19 +815,19 @@ def build_mangowing():
     # -- wings: three stepped plates splayed out, tipped with a lit feather -
     wing_parts = {}
     for side, sign in (("L", 1), ("R", -1)):
-        anchor = (sign * 0.21, -0.02, 0.70)
+        anchor = (sign * 0.20, 0.0, 0.74)
         parts = [
-            bk.block("wing.%s.f0" % side, (0.34, 0.06, 0.38),
-                     (sign * 0.37, -0.01, 0.62), rot=(0, -sign * 14, 0),
+            bk.block("wing.%s.f0" % side, (0.36, 0.07, 0.40),
+                     (sign * 0.40, 0.01, 0.66), rot=(0, -sign * 12, 0),
                      color=mango),
-            bk.block("wing.%s.f1" % side, (0.28, 0.055, 0.28),
-                     (sign * 0.46, -0.10, 0.45), rot=(0, -sign * 22, 0),
+            bk.block("wing.%s.f1" % side, (0.30, 0.06, 0.30),
+                     (sign * 0.51, -0.09, 0.48), rot=(0, -sign * 20, 0),
                      color=mango_r),
-            bk.block("wing.%s.f2" % side, (0.22, 0.05, 0.19),
-                     (sign * 0.52, -0.18, 0.31), rot=(0, -sign * 30, 0),
+            bk.block("wing.%s.f2" % side, (0.23, 0.055, 0.20),
+                     (sign * 0.58, -0.18, 0.33), rot=(0, -sign * 28, 0),
                      color=mango_y),
-            bk.block("wing.%s.tip" % side, (0.17, 0.045, 0.055),
-                     (sign * 0.555, -0.24, 0.235), rot=(0, -sign * 30, 0),
+            bk.block("wing.%s.tip" % side, (0.18, 0.05, 0.06),
+                     (sign * 0.615, -0.24, 0.255), rot=(0, -sign * 28, 0),
                      material=_neon(halo, 2.6)),
         ]
         merged = kit.join(parts, "wing.%s" % side)
@@ -849,9 +874,9 @@ def build_crawler():
     kit.reset_scene()
     root = kit.empty("root")
 
-    chitin = "#242a36"
-    plate = "#3a465e"
-    plate_lt = "#65769a"
+    chitin = "#252b3a"
+    plate = "#4d5c7b"
+    plate_lt = "#8ea0c4"
     glow = "#7dff8c"
     glow_dim = "#3fd070"
 
@@ -871,14 +896,19 @@ def build_crawler():
         body.append(bk.slab("body.ridge%d" % i, (0.075, d * 0.8, 0.03),
                             (0, dy, z + 0.03 + h * 0.5), color=plate_lt))
         # The lamp: a strip on the belly, plus a slit up each flank.
-        body.append(bk.glow_block("body.lamp%d" % i, (w * 0.64, d * 0.84, 0.045),
-                                  (0, dy, z - h * 0.5), color=glow,
+        body.append(bk.glow_block("body.lamp%d" % i, (w * 0.68, d * 0.92, 0.06),
+                                  (0, dy, z - h * 0.5 - 0.015), color=glow,
                                   strength=3.0))
         for side, sign in (("L", 1), ("R", -1)):
             body.append(bk.glow_block(
                 "body.slit%d.%s" % (i, side), (0.028, d * 0.62, 0.055),
                 (sign * w * 0.5, dy, z - h * 0.22), color=glow_dim,
                 strength=2.4))
+
+    # One unbroken keel of light running the whole underside. Four separate
+    # chips read as damage; a continuous bar reads as a creature that glows.
+    body.append(bk.glow_block("body.keel", (0.24, 0.98, 0.05),
+                              (0, -0.06, 0.30), color=glow, strength=3.2))
 
     # -- head: armoured wedge, four lit eyes, a pair of mandibles -----------
     head_dims = (0.34, 0.24, 0.22)
@@ -919,12 +949,14 @@ def build_crawler():
 
     # -- ten legs: five per flank, tall enough to lift the lamp off the floor
     def bug_leg(name, sign, hy, out, hz):
-        hip = (sign * 0.20, hy, hz)
-        knee = (sign * (0.20 + out), hy + 0.03, hz + 0.16)
-        foot = (sign * (0.22 + out), hy + 0.08, 0.02)
+        hip = (sign * 0.21, hy, hz)
+        knee = (sign * (0.21 + out), hy + 0.03, hz + 0.12)
+        foot = (sign * (0.23 + out), hy + 0.07, 0.02)
         parts = [
-            _strut(name + ".femur", hip, knee, 0.05, color=plate),
-            _strut(name + ".tibia", knee, foot, 0.042, color=chitin, taper=0.5),
+            _strut(name + ".femur", hip, knee, 0.075, color=plate_lt),
+            _strut(name + ".tibia", knee, foot, 0.062, color=plate, taper=0.4),
+            bk.block(name + ".joint", (0.085, 0.085, 0.085),
+                     (sign * (0.21 + out), hy + 0.03, hz + 0.12), color=plate_lt),
         ]
         merged = kit.join(parts, name)
         kit.weld(merged)
@@ -933,8 +965,8 @@ def build_crawler():
 
     front_l, front_r, back_l, back_r = [], [], [], []
     for i, (hy, out, hz) in enumerate((
-        (0.30, 0.16, 0.40), (0.15, 0.19, 0.44), (0.0, 0.20, 0.44),
-        (-0.17, 0.19, 0.42), (-0.34, 0.15, 0.38),
+        (0.30, 0.12, 0.38), (0.15, 0.15, 0.42), (0.0, 0.16, 0.42),
+        (-0.17, 0.15, 0.40), (-0.34, 0.12, 0.36),
     )):
         left = bug_leg("leg.L%d" % i, 1, hy, out, hz)
         right = _mirror(left, "leg.R%d" % i)
@@ -1016,81 +1048,89 @@ def build_cocoa_croc():
         return parts
 
     # -- body: short, deep and lifted, not a plank --------------------------
-    body_dims = (0.40, 0.50, 0.32)
-    body_at = (0, -0.02, 0.42)
+    body_dims = (0.40, 0.44, 0.34)
+    body_at = (0, -0.02, 0.44)
     body = [bk.block("body.core", body_dims, body_at, material=glossy)]
-    body.append(bk.block("body.belly", (0.34, 0.46, 0.10),
-                         (0, -0.02, 0.275), color=cream))
+    body.append(bk.block("body.belly", (0.34, 0.40, 0.11),
+                         (0, -0.02, 0.295), color=cream))
     for side, sign in (("L", 1), ("R", -1)):
-        body.append(bk.slab("body.belly.edge.%s" % side, (0.03, 0.44, 0.06),
-                            (sign * 0.202, -0.02, 0.315), color=cream_dk))
+        body.append(bk.slab("body.belly.edge.%s" % side, (0.03, 0.42, 0.10),
+                            (sign * 0.202, -0.02, 0.345), color=cream))
     # Moulded squares -- this is a bar of chocolate that happens to be a croc.
     for row in range(3):
         for col in (-1, 1):
             body.append(bk.slab(
-                "body.square.%d.%d" % (row, col), (0.145, 0.125, 0.05),
-                (col * 0.09, 0.13 - row * 0.155, 0.595), material=glossy_dk))
+                "body.square.%d.%d" % (row, col), (0.155, 0.115, 0.05),
+                (col * 0.09, 0.12 - row * 0.135, 0.635), material=glossy_dk))
     # The signature bite: taken out of the top of the back, where the 3/4 hero
     # angle looks straight into it. A second, smaller one on the flank.
     body += bite("body.bite.back", body_at, body_dims, "top",
                  count=5, radius=0.11, size=0.052)
-    body += bite("body.bite.flank", (0, -0.16, 0.42), (0.40, 0.22, 0.32), "left",
+    body += bite("body.bite.flank", (0, -0.14, 0.44), (0.40, 0.22, 0.34), "left",
                  count=5, radius=0.075, size=0.042)
-    body.append(bk.block("body.neck", (0.26, 0.16, 0.20),
-                         (0, 0.24, 0.52), material=glossy))
+    body.append(bk.block("body.neck", (0.27, 0.17, 0.22),
+                         (0, 0.24, 0.56), material=glossy))
 
     # -- head: raised on the neck, long snout carried well forward ---------
     skull_dims = (0.30, 0.24, 0.20)
-    skull_at = (0, 0.42, 0.56)
+    skull_at = (0, 0.42, 0.62)
     head = [bk.block("head.skull", skull_dims, skull_at, material=glossy)]
-    head.append(bk.block("head.snout", (0.25, 0.32, 0.13),
-                         (0, 0.68, 0.51), material=glossy))
-    head.append(bk.block("head.jaw", (0.23, 0.30, 0.065),
-                         (0, 0.67, 0.415), color=cream))
+    head.append(bk.block("head.snout", (0.24, 0.38, 0.115),
+                         (0, 0.71, 0.555), material=glossy))
+    head.append(bk.block("head.jaw", (0.22, 0.36, 0.06),
+                         (0, 0.70, 0.468), material=glossy_dk))
+    head.append(bk.slab("head.gumline", (0.24, 0.34, 0.022),
+                        (0, 0.70, 0.502), color=cream_dk))
     head.append(bk.slab("head.nostrils", (0.12, 0.06, 0.03),
-                        (0, 0.81, 0.585), material=glossy_dk))
+                        (0, 0.87, 0.615), material=glossy_dk))
     # Cream teeth showing along the upper jaw line.
-    for i in range(4):
+    for i in range(5):
         for side, sign in (("L", 1), ("R", -1)):
             head.append(bk.wedge(
                 "head.tooth.%s%d" % (side, i), (0.034, 0.034, 0.065),
-                (sign * 0.115, 0.80 - i * 0.085, 0.428), rot=(180, 0, 0),
+                (sign * 0.112, 0.85 - i * 0.08, 0.482), rot=(180, 0, 0),
                 color=cream, taper=0.8))
     # Eyes on raised turrets, lit like warm caramel -- the "secret" tell.
     for side, sign in (("L", 1), ("R", -1)):
         head.append(bk.block("head.turret.%s" % side, (0.10, 0.11, 0.08),
-                             (sign * 0.09, 0.46, 0.695), material=glossy_dk))
-    head += bk.eyes("head.eye", (0, 0.46, 0.705), (0.32, 0.11, 0.08),
+                             (sign * 0.09, 0.46, 0.755), material=glossy_dk))
+    head += bk.eyes("head.eye", (0, 0.46, 0.765), (0.32, 0.11, 0.08),
                     spacing=0.56, height=0.0, size=0.058, style="glow",
                     iris=caramel)
     head.append(bk.slab("head.browridge", (0.32, 0.11, 0.04),
-                        (0, 0.42, 0.675), material=glossy_dk))
+                        (0, 0.42, 0.735), material=glossy_dk))
     head += bite("head.bite", skull_at, skull_dims, "left",
                  count=4, radius=0.055, size=0.032)
 
     # -- tail: lifted in a curl, foil-wrapped at the base, scuted on top ---
-    tail_parts = [bk.tail("tail.body", (0, -0.26, 0.42), length=0.44,
-                          thickness=0.19, color=choc, style="taper",
-                          segments=4, curl=0.60)]
-    tail_parts.append(bk.block("tail.foil", (0.25, 0.15, 0.25),
-                               (0, -0.31, 0.43), color=gold))
-    tail_parts.append(bk.slab("tail.foil.crimp", (0.27, 0.035, 0.27),
-                              (0, -0.39, 0.435), color=gold_dk))
+    tail_parts = [bk.tail("tail.body", (0, -0.20, 0.44), length=0.46,
+                          thickness=0.20, color=choc, style="taper",
+                          segments=4, curl=0.62)]
+    tail_parts.append(bk.block("tail.foil", (0.28, 0.15, 0.28),
+                               (0, -0.24, 0.45), color=gold))
+    tail_parts.append(bk.slab("tail.foil.crimp", (0.30, 0.04, 0.30),
+                              (0, -0.32, 0.455), color=gold_dk))
+    # Torn foil: three ragged tabs peeling off the wrapper's forward edge.
+    for i, (fx, fz, fr) in enumerate(((0.13, 0.14, -34), (-0.10, 0.05, 26),
+                                      (0.03, -0.13, 12))):
+        tail_parts.append(bk.slab("tail.foil.tear%d" % i, (0.10, 0.03, 0.09),
+                                  (fx, -0.15, 0.45 + fz), rot=(0, fr, 0),
+                                  color=gold))
     for i, (ty, tz, th) in enumerate((
-        (-0.44, 0.53, 0.09), (-0.55, 0.58, 0.075), (-0.65, 0.66, 0.06),
+        (-0.40, 0.55, 0.10), (-0.52, 0.62, 0.08), (-0.63, 0.73, 0.065),
     )):
         tail_parts.append(bk.wedge("tail.scute%d" % i, (0.055, 0.07, th),
                                    (0, ty, tz), rot=(-14, 0, 0),
                                    color=choc_lt, taper=0.65))
 
-    legs = bk.legs_quad("leg", front=(0.16, 0.16, 0.32), back=(0.17, -0.18, 0.32),
-                        length=0.26, thickness=0.115, color=choc_lt,
+    legs = bk.legs_quad("leg", front=(0.16, 0.13, 0.34), back=(0.17, -0.16, 0.34),
+                        length=0.29, thickness=0.115, color=choc_lt,
                         foot_color=cream_dk)
 
     groups = {
-        "body": (body, (0, 0, 0.26)),
-        "head": (head, (0, 0.30, 0.50)),
-        "tail": (tail_parts, (0, -0.26, 0.42)),
+        "body": (body, (0, 0, 0.28)),
+        "head": (head, (0, 0.30, 0.56)),
+        "tail": (tail_parts, (0, -0.22, 0.44)),
     }
     for key, obj in legs.items():
         groups[key] = ([obj], tuple(obj.location))
@@ -1134,9 +1174,16 @@ def build_crocodon():
     for side, sign in (("L", 1), ("R", -1)):
         body.append(bk.slab("body.trap.%s" % side, (0.05, 0.32, 0.17),
                             (sign * 0.342, 0.04, 0.90), color=scale_lt))
+        # Pale scute plates on the flanks: without them the torso is one
+        # unbroken green mass at any distance.
+        for i, (py, pz) in enumerate(((0.14, 0.74), (-0.02, 0.66),
+                                      (0.10, 0.56))):
+            body.append(bk.slab("body.scute.%s%d" % (side, i),
+                                (0.03, 0.17, 0.11),
+                                (sign * 0.262, py, pz), color=scale_lt))
     # Spine spikes: rise over the shoulders, then march down the back.
-    spikes = ((0.14, 0.15, 1.05), (0.02, 0.21, 1.07), (-0.12, 0.24, 1.02),
-              (-0.27, 0.19, 0.89), (-0.40, 0.14, 0.74))
+    spikes = ((0.14, 0.19, 1.07), (0.02, 0.28, 1.11), (-0.12, 0.32, 1.06),
+              (-0.27, 0.24, 0.92), (-0.40, 0.17, 0.76))
     for i, (sy, sh, sz) in enumerate(spikes):
         body.append(bk.wedge("body.spike%d" % i, (0.095, 0.12, sh),
                              (0, sy, sz), rot=(-16, 0, 0), color=bone, taper=0.72))
@@ -1152,40 +1199,40 @@ def build_crocodon():
     skull_dims = (0.36, 0.30, 0.28)
     skull_at = (0, 0.38, 1.06)
     head = [bk.block("head.skull", skull_dims, skull_at, color=scale)]
-    head.append(bk.block("head.snout", (0.31, 0.36, 0.19),
-                         (0, 0.69, 1.01), color=scale))
-    head.append(bk.block("head.jaw", (0.29, 0.34, 0.11),
-                         (0, 0.68, 0.875), color=belly))
-    head.append(bk.slab("head.lip", (0.32, 0.35, 0.035),
-                        (0, 0.69, 0.925), color=scale_dk))
+    head.append(bk.block("head.snout", (0.31, 0.44, 0.19),
+                         (0, 0.73, 1.00), color=scale))
+    head.append(bk.block("head.jaw", (0.29, 0.42, 0.11),
+                         (0, 0.72, 0.865), color=belly))
+    head.append(bk.slab("head.lip", (0.32, 0.43, 0.035),
+                        (0, 0.73, 0.915), color=scale_dk))
     head.append(bk.slab("head.nostrils", (0.14, 0.07, 0.035),
-                        (0, 0.85, 1.12), color=scale_dk))
+                        (0, 0.93, 1.11), color=scale_dk))
     head.append(bk.slab("head.brow", (0.38, 0.13, 0.065),
                         (0, 0.38, 1.215), color=bone_dk))
     head += bk.eyes("head.eye", (0, 0.42, 1.15), (0.36, 0.13, 0.10),
                     spacing=0.56, height=0.0, size=0.062, style="glow",
                     iris=ember)
     # Interlocking fangs: upper hanging down, lower standing up.
-    head += _jaw_fangs("head.fang.up", (0, 0.82, 0.925), count=4, spread=0.135,
+    head += _jaw_fangs("head.fang.up", (0, 0.90, 0.915), count=5, spread=0.135,
                        size=0.048, length=0.105, color=bone, down=True,
-                       spacing=0.09)
-    head += _jaw_fangs("head.fang.low", (0, 0.78, 0.925), count=3, spread=0.125,
+                       spacing=0.095)
+    head += _jaw_fangs("head.fang.low", (0, 0.86, 0.915), count=4, spread=0.125,
                        size=0.042, length=0.085, color=bone, down=False,
-                       spacing=0.09)
+                       spacing=0.095)
     for side, sign in (("L", 1), ("R", -1)):
         head.append(bk.wedge("head.horn.%s" % side, (0.065, 0.075, 0.19),
                              (sign * 0.15, 0.27, 1.27), rot=(24, -sign * 22, 0),
                              color=bone, taper=0.75))
     head.append(bk.glow_block("head.throat", (0.15, 0.04, 0.05),
-                              (0, 0.53, 0.885), color=ember, strength=2.4))
+                              (0, 0.53, 0.875), color=ember, strength=2.4))
 
     # -- arms: heavy, with three bone claws each ---------------------------
-    arm_l, arm_r = bk.arms("arm", (0.33, 0.08, 0.92), length=0.36,
+    arm_l, arm_r = bk.arms("arm", (0.33, 0.08, 0.88), length=0.38,
                            thickness=0.15, color=scale, hand_color=scale_dk,
-                           angle=22)
+                           angle=16)
     claw_groups = {"L": [], "R": []}
-    hand = (0.33 + math.sin(22 * bk.D2R) * 0.36, 0.08,
-            0.92 - math.cos(22 * bk.D2R) * 0.36)
+    hand = (0.33 + math.sin(16 * bk.D2R) * 0.38, 0.08,
+            0.88 - math.cos(16 * bk.D2R) * 0.38)
     for side, sign in (("L", 1), ("R", -1)):
         for i, dx in enumerate((-0.055, 0.0, 0.055)):
             claw_groups[side].append(bk.wedge(

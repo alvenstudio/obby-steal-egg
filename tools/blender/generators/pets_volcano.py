@@ -487,15 +487,15 @@ def build_lava_frog():
     head.append(bk.glow_block("head.throatglow", (0.22, 0.12, 0.03),
                               (0, 0.3, 0.14), color=EMBER, strength=2.0))
     # Eye domes standing proud of the skull top, read from every angle.
-    dome_dims = (0.46, 0.16, 0.16)
-    dome_at = (0, 0.2, 0.53)
+    dome_dims = (0.5, 0.18, 0.18)
+    dome_at = (0, 0.2, 0.54)
     for side, sign in (("L", 1), ("R", -1)):
-        head.append(bk.block("head.dome." + side, (0.16, 0.16, 0.16),
-                             (sign * 0.15, 0.2, 0.53), color=ROCK_LIT))
-        head.append(bk.block("head.domecap." + side, (0.115, 0.115, 0.035),
-                             (sign * 0.15, 0.2, 0.617), color=CHAR))
-    head += _glow_eyes("head.eye", dome_at, dome_dims, spacing=0.66,
-                       height=0.0, size=0.08, iris=YELLOW, aspect=0.9)
+        head.append(bk.block("head.dome." + side, (0.18, 0.18, 0.18),
+                             (sign * 0.16, 0.2, 0.54), color=ROCK_LIT))
+        head.append(bk.block("head.domecap." + side, (0.13, 0.13, 0.04),
+                             (sign * 0.16, 0.2, 0.638), color=CHAR))
+    head += _glow_eyes("head.eye", dome_at, dome_dims, spacing=0.64,
+                       height=0.0, size=0.09, iris=YELLOW, aspect=0.9)
 
     # Front legs prop the chest up; the back pair are folded jumping haunches
     # whose knees rise above the spine.
@@ -781,8 +781,8 @@ def build_chili_imp():
     body.append(bk.block("body.neck", (0.24, 0.24, 0.09), (0, 0.0, 0.84),
                          color=pod))
     # Rage tufts off the shoulders: the fire this pet was missing entirely.
-    body += _flames("body.rage", (0, -0.1, 0.8), count=4, spread=0.42,
-                    height=0.17, width=0.075, axis="x", lean=-18)
+    body += _flames("body.rage", (0, -0.1, 0.8), count=3, spread=0.44,
+                    height=0.2, width=0.085, axis="x", lean=-18)
 
     head_dims = (0.36, 0.32, 0.3)
     head_at = (0, 0.03, 1.0)
@@ -792,8 +792,8 @@ def build_chili_imp():
     head += bk.eyes("head.eye", head_at, head_dims, spacing=0.56, height=0.05,
                     size=0.09, style="angry", iris="#1a0d10", sclera=YELLOW,
                     pupil_scale=0.5, glint=False)
-    head += bk.mouth("head.mouth", head_at, head_dims, width=0.2, height=0.04,
-                     drop=-0.1, color="#2a0a0c", style="open", teeth=4,
+    head += bk.mouth("head.mouth", head_at, head_dims, width=0.21, height=0.042,
+                     drop=-0.1, color="#2a0a0c", style="open", teeth=3,
                      teeth_color="#fff3d0")
     for side, sign in (("L", 1), ("R", -1)):
         head.append(bk.wedge("head.horn." + side, (0.06, 0.06, 0.15),
@@ -927,8 +927,8 @@ def _cerberus_head(prefix, at, dims, outward=0.0, scale=1.0):
     # Collar tuft count scales with the head. Nine tufts on all three heads
     # merged into one wall of orange behind the skulls; the outer heads get a
     # sparser, shorter ruff so each face keeps its own frame.
-    parts += _fire_collar(prefix + ".mane", at, dims, ring=0.1 * scale,
-                          thickness=0.075 * scale,
+    parts += _fire_collar(prefix + ".mane", at, dims, ring=0.11 * scale,
+                          thickness=(0.095 if scale >= 1.0 else 0.075) * scale,
                           count=9 if scale >= 1.0 else 6, back=0.62,
                           strength=2.6 if scale >= 1.0 else 2.2)
     return parts
@@ -952,12 +952,13 @@ def build_cerberus():
     # so the strap itself is a dark bronze and only the studs are gold.
     body.append(bk.block("body.collar", (0.84, 0.13, 0.64), (0, 0.34, 0.84),
                          color="#3c2f14"))
-    for i in range(8):
-        angle = (i / 8.0) * 2 * math.pi
-        body.append(bk.glow_block(
-            "body.stud%d" % i, (0.085, 0.07, 0.085),
-            (math.sin(angle) * 0.43, 0.36, 0.84 + math.cos(angle) * 0.33),
-            color=GOLD, strength=1.6))
+    for i in range(6):
+        angle = (i / 6.0) * 2 * math.pi
+        body.append(bk.wedge(
+            "body.spike%d" % i, (0.075, 0.075, 0.15),
+            (math.sin(angle) * 0.45, 0.36, 0.84 + math.cos(angle) * 0.35),
+            rot=(0, math.degrees(angle), 0),
+            material=_fire_mat(GOLD, 1.7), taper=0.8))
     body += _cracks("body.crack", body_at, body_dims, count=5, color=EMBER,
                     width=0.036, seed=13, span=0.8)
     body += _cracks("body.chestcrack", chest_at, chest_dims, count=2,
@@ -1048,6 +1049,10 @@ def build_phoenix():
     body += _flames("body.ruff", (0, 0.02, 0.86), count=5, spread=0.28,
                     height=0.13, width=0.07, axis="x",
                     colors=(FLARE, GOLD, MOLTEN), strength=2.2)
+    # A crimson ruff at the throat. Without it the gold torso runs straight
+    # into the gold crown and the head has no edge to be found by.
+    body.append(bk.block("body.throat", (0.27, 0.2, 0.1), (0, 0.11, 0.89),
+                         color=CRIMSON))
 
     head_dims = (0.25, 0.24, 0.25)
     head_at = (0, 0.15, 1.02)
@@ -1064,8 +1069,8 @@ def build_phoenix():
                        strength=2.6, aspect=1.0)
     # A big pale-gold beak. The first pass used a dark brown one that simply
     # disappeared against the crimson face at any distance.
-    head += bk.beak("head.beak", head_at, head_dims, width=0.1, length=0.19,
-                    height=0.09, color="#ffd873", drop=-0.05, taper=0.72)
+    head += bk.beak("head.beak", head_at, head_dims, width=0.105, length=0.23,
+                    height=0.1, color="#ffd873", drop=-0.08, taper=0.7)
     # Crest: three rising flame feathers, tallest in the middle.
     for i, (dy, h, col) in enumerate(((0.05, 0.15, YELLOW), (-0.03, 0.22, FLARE),
                                       (-0.11, 0.14, MOLTEN))):
@@ -1086,7 +1091,7 @@ def build_phoenix():
     wing_l, wing_r = _plume_wing("wing", (0.17, 0.02, 0.8), count=4,
                                  length=0.54, root_color=CRIMSON,
                                  colors=(CRIMSON, "#e0480c", MOLTEN, FLARE),
-                                 pitch=(-50.0, -6.0), yaw=(8.0, -72.0),
+                                 pitch=(-38.0, 4.0), yaw=(8.0, -72.0),
                                  strength=1.0, width=0.18, coverts=2)
 
     # The fan: feathers radiating from one base, sweeping up and back, the
