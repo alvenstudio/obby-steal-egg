@@ -59,6 +59,11 @@ export class Input {
   private wheel = 0;
   private locked = false;
   private enabled = true;
+  private dragging = false;
+  /** True once pointer lock has ever succeeded in this session. */
+  private everLocked = false;
+  /** Set when the browser refuses lock; enables the drag-to-look fallback. */
+  private lockUnavailable = false;
 
   /** Raised when pointer lock is gained or lost, so the UI can pause. */
   onLockChange: ((locked: boolean) => void) | null = null;
@@ -72,6 +77,8 @@ export class Input {
     document.addEventListener('pointerlockchange', this.handlePointerLock);
     document.addEventListener('mousemove', this.handleMouseMove);
     element.addEventListener('mousedown', this.handleMouseDown);
+    window.addEventListener('mouseup', this.handleMouseUp);
+    element.addEventListener('contextmenu', this.handleContextMenu);
     element.addEventListener('wheel', this.handleWheel, { passive: true });
   }
 
@@ -82,6 +89,8 @@ export class Input {
     document.removeEventListener('pointerlockchange', this.handlePointerLock);
     document.removeEventListener('mousemove', this.handleMouseMove);
     this.element.removeEventListener('mousedown', this.handleMouseDown);
+    window.removeEventListener('mouseup', this.handleMouseUp);
+    this.element.removeEventListener('contextmenu', this.handleContextMenu);
     this.element.removeEventListener('wheel', this.handleWheel);
   }
 
@@ -98,13 +107,31 @@ export class Input {
     try {
       const result = this.element.requestPointerLock() as unknown;
       if (result && typeof (result as Promise<void>).catch === 'function') {
-        (result as Promise<void>).catch(() => {
-          this.onLockFailed?.();
-        });
+        (result as Promise<void>).catch(() => this.failLock());
       }
     } catch {
-      this.onLockFailed?.();
+      this.failLock();
     }
+  }
+
+  private failLock(): void {
+    this.lockUnavailable = true;
+    this.onLockFailed?.();
+  }
+
+  /** True once the pointer has actually been captured at least once. */
+  get hasEverLocked(): boolean {
+    return this.everLocked;
+  }
+
+  /**
+   * Whether the browser has refused pointer lock, in which case the game falls
+   * back to hold-to-look. Embedded frames and some permissions policies deny
+   * lock outright, and refusing to run at all in that case would be a much
+   * worse outcome than a slightly clumsier camera.
+   */
+  get isLockUnavailable(): boolean {
+    return this.lockUnavailable;
   }
 
   releaseLock(): void {
@@ -194,25 +221,59 @@ export class Input {
 
   private handlePointerLock = (): void => {
     this.locked = document.pointerLockElement === this.element;
-    if (!this.locked) this.down.clear();
+    if (this.locked) {
+      this.everLocked = true;
+      this.lockUnavailable = false;
+    } else {
+      this.down.clear();
+    }
     this.onLockChange?.(this.locked);
   };
 
   private handleMouseMove = (event: MouseEvent): void => {
-    if (!this.locked) return;
+    // Locked: raw deltas. Unlocked: only while dragging, so the cursor can
+    // still be used on the HUD without swinging the camera.
+    if (!this.locked && !this.dragging) return;
     this.mouseDx += event.movementX;
     this.mouseDy += event.movementY;
   };
 
   private handleMouseDown = (event: MouseEvent): void => {
-    if (!this.locked) return;
-    if (event.button === 0) {
+    if (event.button === 2) {
+      this.dragging = true;
+      return;
+    }
+    if (event.button !== 0) return;
+    if (!this.locked) {
+      this.dragging = true;
+      // Without lock, a left-drag looks around; a click that does not turn
+      // into a drag still counts as an interact on mouseup.
+      return;
+    }
+    this.down.add('interact');
+    this.edge.add('interact');
+    // A click is instantaneous; release on the next frame so `held` does not
+    // latch on until the mouseup arrives.
+    window.setTimeout(() => this.down.delete('interact'), 0);
+  };
+
+  private handleMouseUp = (event: MouseEvent): void => {
+    if (event.button === 2) {
+      this.dragging = false;
+      return;
+    }
+    if (event.button !== 0) return;
+    if (!this.locked && this.dragging) {
+      this.dragging = false;
       this.down.add('interact');
       this.edge.add('interact');
-      // A click is instantaneous; release on the next frame so `held` does not
-      // latch on until the mouseup arrives.
       window.setTimeout(() => this.down.delete('interact'), 0);
     }
+  };
+
+  private handleContextMenu = (event: Event): void => {
+    // Right-drag is a look control here, so the browser menu must not open.
+    event.preventDefault();
   };
 
   private handleWheel = (event: WheelEvent): void => {

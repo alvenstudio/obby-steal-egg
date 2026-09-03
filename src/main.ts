@@ -174,14 +174,29 @@ startButton.addEventListener('click', () => start());
 
 input.onLockChange = (locked) => {
   if (!started) return;
-  // Losing the pointer is the pause: there is no separate pause menu, because
-  // the only reason to stop is that you clicked away.
-  session.paused = !locked && !panels.isOpen;
-  if (!locked && !panels.isOpen) {
-    overlay.classList.remove('hidden');
-    startButton.textContent = 'Resume';
-    started = false;
+  // Losing the pointer is the pause -- but only for a player who actually had
+  // it. Some contexts (embedded frames, permissions policies) deny pointer
+  // lock outright, and treating that denial as "the player left" would un-start
+  // the game the instant it began and loop forever.
+  if (locked || !input.hasEverLocked) {
+    session.paused = false;
+    return;
   }
+  if (panels.isOpen) return;
+  session.paused = true;
+  overlay.classList.remove('hidden');
+  startButton.textContent = 'Resume';
+  started = false;
+};
+
+input.onLockFailed = () => {
+  // Playable without lock: left- or right-drag looks around.
+  if (!started) return;
+  hud.toast(
+    'Mouse look needs a click-and-drag here',
+    'This page cannot capture the pointer',
+    'info',
+  );
 };
 
 function openPanel(panel: PanelId): void {

@@ -255,8 +255,10 @@ def _dragon_wing(name, at, span=0.62, drop=0.44, rise=26.0, sweep=0.16,
     ))
     for i in range(panels):
         t = (i + 0.5) / panels
-        # deepest around t=0.35, then a hard fall-off to the tip
-        depth = drop * (0.34 + 0.66 * math.sin(math.pi * (0.3 + 0.62 * (1 - t))))
+        # Full depth at the root, falling away quadratically to the tip. A
+        # sinusoid was tried first and got the profile backwards -- the outer
+        # panels came out the deepest and the wing read as a rectangle.
+        depth = drop * (1.0 - 0.62 * t * t)
         px = at[0] + span * t * cos_r
         py = at[1] - sweep * t * t
         pz = at[2] + span * t * sin_r - depth * 0.5
@@ -344,96 +346,103 @@ def _plume_wing(name, at, count=5, length=0.5, root_color=GOLD,
 
 # ---------------------------------------------------------------------------
 # Lava Gecko -- Rare, $180/s.
-# Low, wide-stanced, long-tailed. The read is a flat lizard with light leaking
-# out from between its plates, so the body hugs the floor and the tail is
-# nearly as long as everything else put together.
+# Low, wide-stanced, splay-toed. The read is a flat lizard with light leaking
+# out from between its plates.
+#
+# The proportions here were tuned against the normalised height rather than
+# guessed: the first pass came out 3.9 body-lengths long for 1.0 tall, which is
+# a plank, not a pet -- at icon size the head was four pixels of a very long
+# smear. Shortening the tail and standing the torso up off the floor brings it
+# to a bit over 2:1, which is where the forest quadrupeds sit.
 # ---------------------------------------------------------------------------
 
 def build_lava_gecko():
     kit.reset_scene()
     root = kit.empty("root")
 
-    body_dims = (0.34, 0.72, 0.24)
-    body_at = (0, -0.06, 0.36)
+    body_dims = (0.36, 0.56, 0.28)
+    body_at = (0, -0.04, 0.42)
     body = [bk.block("body.core", body_dims, body_at, color=ROCK)]
     # A raised spine plate: the shape that makes a flat top read as scales.
-    body.append(bk.block("body.ridge", (0.19, 0.6, 0.055),
-                         (0, -0.06, 0.485), color=ROCK_LIT))
-    body.append(bk.block("body.neck", (0.2, 0.14, 0.17),
-                         (0, 0.32, 0.39), color=ROCK_LIT))
+    body.append(bk.block("body.ridge", (0.2, 0.46, 0.06),
+                         (0, -0.04, 0.585), color=ROCK_LIT))
+    body.append(bk.block("body.neck", (0.22, 0.14, 0.19),
+                         (0, 0.28, 0.45), color=ROCK_LIT))
     # The belly seam is the pet's signature, so it runs the full length as one
     # unbroken line low on both flanks -- visible from any angle but above.
-    body.append(bk.glow_block("body.seam", (0.355, 0.58, 0.04),
-                              (0, -0.06, 0.262), color=MOLTEN, strength=2.2))
-    body.append(bk.glow_block("body.belly", (0.2, 0.5, 0.05),
-                              (0, -0.06, 0.242), color=FLARE, strength=2.0))
+    body.append(bk.glow_block("body.seam", (0.375, 0.46, 0.045),
+                              (0, -0.04, 0.305), color=MOLTEN, strength=2.1))
+    body.append(bk.glow_block("body.belly", (0.22, 0.4, 0.05),
+                              (0, -0.04, 0.285), color=FLARE, strength=1.9))
     body += _cracks("body.crack", body_at, body_dims, count=3, color=EMBER,
-                    width=0.028, seed=4)
-    body += bk.spots("body.scale", body_at, body_dims, count=4, size=0.055,
+                    width=0.03, seed=4)
+    body += bk.spots("body.scale", body_at, body_dims, count=4, size=0.06,
                      color=ROCK_LIT, seed=9, faces=("top", "left", "right"))
 
-    head_dims = (0.26, 0.26, 0.17)
-    head_at = (0, 0.5, 0.42)
+    head_dims = (0.28, 0.26, 0.2)
+    head_at = (0, 0.48, 0.48)
     head = [bk.block("head.skull", head_dims, head_at, color=ROCK)]
-    snout_at = (0, 0.68, 0.4)
-    snout_dims = (0.18, 0.13, 0.11)
+    snout_at = (0, 0.66, 0.455)
+    snout_dims = (0.2, 0.14, 0.13)
     head.append(bk.block("head.snout", snout_dims, snout_at, color=ROCK_LIT))
     head += bk.nostrils("head.nose", snout_at, snout_dims, spacing=0.44,
-                        height=0.02, size=0.028, color=CHAR)
+                        height=0.02, size=0.03, color=CHAR)
     # Gecko eye turrets: knobs on the skull top, each with a molten iris.
-    turret_dims = (0.31, 0.12, 0.1)
-    turret_at = (0, 0.52, 0.51)
+    turret_dims = (0.34, 0.13, 0.11)
+    turret_at = (0, 0.5, 0.585)
     for side, sign in (("L", 1), ("R", -1)):
-        head.append(bk.block("head.turret." + side, (0.11, 0.12, 0.1),
-                             (sign * 0.1, 0.52, 0.51), color=ROCK_LIT))
+        head.append(bk.block("head.turret." + side, (0.12, 0.13, 0.11),
+                             (sign * 0.11, 0.5, 0.585), color=ROCK_LIT))
     head += _glow_eyes("head.eye", turret_at, turret_dims, spacing=0.64,
-                       height=0.0, size=0.055, iris=YELLOW, aspect=1.0)
+                       height=0.0, size=0.06, iris=YELLOW, aspect=1.0)
     # The mouth line glows, as though the jaw is never quite shut.
-    head.append(bk.glow_block("head.jaw", (0.255, 0.24, 0.022),
-                              (0, 0.5, 0.355), color=EMBER, strength=2.4))
+    head.append(bk.glow_block("head.jaw", (0.275, 0.24, 0.024),
+                              (0, 0.48, 0.4), color=EMBER, strength=2.3))
 
-    # A fat-based tail that swings out to one side. A straight tail on a
+    # A fat-based tail that swings out to one side. A straight tail behind a
     # straight body is one long plank; the sideways kink is what makes the
     # silhouette read as a lizard mid-scurry.
     tail_parts = []
     for i in range(5):
         t = (i + 0.5) / 5.0
-        s = 0.19 * (1.0 - 0.62 * t)
+        s = 0.2 * (1.0 - 0.62 * t)
         tail_parts.append(bk.block(
-            "tail.seg%d" % i, (s, 0.155, s * 0.82),
-            (0.26 * t * t, -0.42 - t * 0.56, 0.36 + 0.09 * t * t), color=ROCK))
+            "tail.seg%d" % i, (s, 0.125, s * 0.82),
+            (0.24 * t * t, -0.36 - t * 0.44, 0.42 + 0.08 * t * t), color=ROCK))
         if i < 3:
             tail_parts.append(bk.glow_block(
-                "tail.seam%d" % i, (s * 0.92, 0.05, 0.03),
-                (0.26 * t * t, -0.46 - t * 0.56, 0.36 - s * 0.36),
+                "tail.seam%d" % i, (s * 0.92, 0.045, 0.03),
+                (0.24 * t * t, -0.39 - t * 0.44, 0.42 - s * 0.36),
                 color=MOLTEN, strength=1.7))
-    tail_obj = _weldgroup("tail", tail_parts, (0, -0.4, 0.36))
+    tail_obj = _weldgroup("tail", tail_parts, (0, -0.34, 0.42))
 
     # Splayed sticky toes -- the one thing that says "gecko" rather than
     # "small lizard", so they are built by hand instead of using _legs_quad.
+    # The shafts are longer than a lizard's really are, on purpose: standing
+    # the torso up off the floor is what keeps the profile from being a plank.
     legs = {}
-    for tag, (hx, hy) in (("F", (0.19, 0.2)), ("B", (0.2, -0.24))):
+    for tag, (hx, hy) in (("F", (0.2, 0.18)), ("B", (0.21, -0.2))):
         parts = [
-            bk.block("leg.%sL.hip" % tag, (0.1, 0.1, 0.085), (hx, hy, 0.31),
+            bk.block("leg.%sL.hip" % tag, (0.11, 0.11, 0.1), (hx, hy, 0.37),
                      color=ROCK_LIT),
-            bk.block("leg.%sL.shaft" % tag, (0.075, 0.075, 0.2),
-                     (hx + 0.06, hy, 0.22), rot=(0, -17, 0), color=ROCK_LIT),
+            bk.block("leg.%sL.shaft" % tag, (0.08, 0.08, 0.26),
+                     (hx + 0.07, hy, 0.25), rot=(0, -16, 0), color=ROCK_LIT),
         ]
         for j, spread in enumerate((-30.0, 0.0, 30.0)):
             parts.append(bk.glow_block(
-                "leg.%sL.toe%d" % (tag, j), (0.045, 0.14, 0.032),
-                (hx + 0.12, hy + 0.03, 0.115), rot=(0, 0, spread),
+                "leg.%sL.toe%d" % (tag, j), (0.045, 0.13, 0.032),
+                (hx + 0.13, hy + 0.03, 0.115), rot=(0, 0, spread),
                 color=EMBER, strength=1.3))
-        parts.append(bk.block("leg.%sL.pad" % tag, (0.11, 0.09, 0.05),
-                              (hx + 0.12, hy - 0.02, 0.12), color=CHAR))
-        left = _weldgroup("leg.%sL" % tag, parts, (hx, hy, 0.31))
+        parts.append(bk.block("leg.%sL.pad" % tag, (0.11, 0.09, 0.055),
+                              (hx + 0.13, hy - 0.02, 0.12), color=CHAR))
+        left = _weldgroup("leg.%sL" % tag, parts, (hx, hy, 0.37))
         legs["leg.%sL" % tag] = left
         legs["leg.%sR" % tag] = _mirror(left, "leg.%sR" % tag)
 
     groups = {
-        "body": (body, (0, 0, 0.26)),
-        "head": (head, (0, 0.38, 0.36)),
-        "tail": ([tail_obj], (0, -0.4, 0.36)),
+        "body": (body, (0, 0, 0.3)),
+        "head": (head, (0, 0.36, 0.42)),
+        "tail": ([tail_obj], (0, -0.34, 0.42)),
     }
     for key, obj in legs.items():
         groups[key] = ([obj], tuple(obj.location))
@@ -938,14 +947,17 @@ def build_cerberus():
     # A gold slave-collar across the shoulders: the one expensive-looking,
     # non-fire material on the pet, and the thing that says "secret" at icon
     # size when the three skulls have blurred into one mass.
-    body.append(bk.block("body.collar", (0.8, 0.13, 0.6), (0, 0.3, 0.82),
-                         color="#8a6a1e"))
+    # It has to stand PROUD of the chest on every axis or it does not exist in
+    # the render -- but a bright band that tall also reads as a saddle blanket,
+    # so the strap itself is a dark bronze and only the studs are gold.
+    body.append(bk.block("body.collar", (0.84, 0.13, 0.64), (0, 0.34, 0.84),
+                         color="#3c2f14"))
     for i in range(8):
         angle = (i / 8.0) * 2 * math.pi
         body.append(bk.glow_block(
-            "body.stud%d" % i, (0.075, 0.055, 0.075),
-            (math.sin(angle) * 0.41, 0.3, 0.82 + math.cos(angle) * 0.31),
-            color=GOLD, strength=1.4))
+            "body.stud%d" % i, (0.085, 0.07, 0.085),
+            (math.sin(angle) * 0.43, 0.36, 0.84 + math.cos(angle) * 0.33),
+            color=GOLD, strength=1.6))
     body += _cracks("body.crack", body_at, body_dims, count=5, color=EMBER,
                     width=0.036, seed=13, span=0.8)
     body += _cracks("body.chestcrack", chest_at, chest_dims, count=2,
@@ -965,15 +977,18 @@ def build_cerberus():
     # pass's 0.28 they started inside the chest and the outer skulls sat on
     # the shoulders, so the three heads fused into one lump; a full skull-width
     # of clear air between each pair is what separates them.
+    # The outer necks climb as well as splay: heads level with the shoulder
+    # line rather than tucked down beside the ribs, so the three skulls make a
+    # triangle instead of a row of lumps against the chest.
     for tag, sign in (("L", 1), ("R", -1)):
-        body.append(bk.block("body.neck." + tag, (0.23, 0.54, 0.25),
-                             (sign * 0.4, 0.54, 0.84),
-                             rot=(-10, 0, -sign * 40), color=ROCK))
+        body.append(bk.block("body.neck." + tag, (0.23, 0.58, 0.25),
+                             (sign * 0.42, 0.6, 0.98),
+                             rot=(-6, 0, -sign * 38), color=ROCK))
 
-    head = _cerberus_head("head", (0, 0.84, 1.38), (0.31, 0.31, 0.31))
-    left_head = _cerberus_head("ear.L", (0.58, 0.78, 0.76), (0.28, 0.28, 0.28),
+    head = _cerberus_head("head", (0, 0.84, 1.4), (0.31, 0.31, 0.31))
+    left_head = _cerberus_head("ear.L", (0.6, 0.9, 1.0), (0.28, 0.28, 0.28),
                                outward=42, scale=0.9)
-    right_head = _cerberus_head("ear.R", (-0.58, 0.78, 0.76), (0.28, 0.28, 0.28),
+    right_head = _cerberus_head("ear.R", (-0.6, 0.9, 1.0), (0.28, 0.28, 0.28),
                                 outward=-42, scale=0.9)
 
     legs = _legs_quad("leg", front=(0.26, 0.24, 0.54), back=(0.24, -0.44, 0.52),
@@ -989,9 +1004,9 @@ def build_cerberus():
 
     groups = {
         "body": (body, (0, 0, 0.42)),
-        "head": (head, (0, 0.62, 1.16)),
-        "ear.L": (left_head, (0.3, 0.4, 0.88)),
-        "ear.R": (right_head, (-0.3, 0.4, 0.88)),
+        "head": (head, (0, 0.62, 1.18)),
+        "ear.L": (left_head, (0.3, 0.44, 0.96)),
+        "ear.R": (right_head, (-0.3, 0.44, 0.96)),
         "tail": ([tail_obj] + tail_fire, (0, -0.58, 0.8)),
     }
     for key, obj in legs.items():
@@ -1047,8 +1062,10 @@ def build_phoenix():
     head += _glow_eyes("head.eye", head_at, head_dims, spacing=0.62,
                        height=0.03, size=0.055, iris="#fff6d0", socket=CRIMSON,
                        strength=2.6, aspect=1.0)
-    head += bk.beak("head.beak", head_at, head_dims, width=0.085, length=0.15,
-                    height=0.075, color="#b35a08", drop=-0.04, taper=0.75)
+    # A big pale-gold beak. The first pass used a dark brown one that simply
+    # disappeared against the crimson face at any distance.
+    head += bk.beak("head.beak", head_at, head_dims, width=0.1, length=0.19,
+                    height=0.09, color="#ffd873", drop=-0.05, taper=0.72)
     # Crest: three rising flame feathers, tallest in the middle.
     for i, (dy, h, col) in enumerate(((0.05, 0.15, YELLOW), (-0.03, 0.22, FLARE),
                                       (-0.11, 0.14, MOLTEN))):
@@ -1064,10 +1081,12 @@ def build_phoenix():
     # into molten -- so the gold torso reads in front of them and the yellow
     # tail fan reads behind. Three values, three shapes; a phoenix painted all
     # one gold is a single bright blob at icon size.
+    # Raised, not outstretched: every feather sits above the horizontal so the
+    # pair make a heraldic V. Wings held out flat read as arms.
     wing_l, wing_r = _plume_wing("wing", (0.17, 0.02, 0.8), count=4,
-                                 length=0.52, root_color=CRIMSON,
+                                 length=0.54, root_color=CRIMSON,
                                  colors=(CRIMSON, "#e0480c", MOLTEN, FLARE),
-                                 pitch=(-24.0, 30.0), yaw=(2.0, -78.0),
+                                 pitch=(-50.0, -6.0), yaw=(8.0, -72.0),
                                  strength=1.0, width=0.18, coverts=2)
 
     # The fan: feathers radiating from one base, sweeping up and back, the
@@ -1097,8 +1116,10 @@ def build_phoenix():
                                  rot=(pitch, 0, yaw), color=YELLOW,
                                  strength=2.8))
 
-    legs = bk.bird_feet("leg", (0.1, 0.04, 0.44), shin=0.24, thickness=0.052,
-                        toe=0.16, color="#b35a08")
+    # Long bright talons. A phoenix standing on two invisible stubs looks like
+    # it is sitting in a bush; the legs are part of the expensive read.
+    legs = bk.bird_feet("leg", (0.11, 0.04, 0.44), shin=0.3, thickness=0.06,
+                        toe=0.19, color="#ffb43a")
 
     groups = {
         "body": (body, (0, 0, 0.44)),
@@ -1136,8 +1157,8 @@ def build_lava_dragon():
     body = [bk.block("body.core", body_dims, body_at, color=CHAR)]
     body.append(bk.block("body.chest", (0.64, 0.42, 0.58), (0, 0.26, 0.78),
                          color=CHAR))
-    body += _cracks("body.crack", body_at, body_dims, count=4, color=EMBER,
-                    width=0.042, seed=17, span=0.84)
+    body += _cracks("body.crack", body_at, body_dims, count=3, color=EMBER,
+                    width=0.046, seed=17, span=0.8)
     # Belly scutes: a ladder of cooled plates with one unbroken molten line
     # running between them from throat to vent.
     for i in range(3):
@@ -1155,11 +1176,11 @@ def build_lava_dragon():
                                   (0, y + 0.06, z - s * 0.48), color=FLARE,
                                   strength=2.2))
     # Dorsal spines, shoulders to hips.
-    for i in range(5):
-        t = i / 4.0
-        h = 0.14 + 0.18 * math.sin(math.pi * (0.2 + 0.75 * t))
+    for i in range(4):
+        t = i / 3.0
+        h = 0.15 + 0.19 * math.sin(math.pi * (0.2 + 0.75 * t))
         body.append(bk.wedge(
-            "body.spine%d" % i, (0.065, 0.1, h),
+            "body.spine%d" % i, (0.07, 0.11, h),
             (0, 0.3 - t * 0.94, 0.99 + h * 0.42), rot=(-14, 0, 0),
             color=ROCK_LIT, taper=0.82))
     body.append(bk.glow_block("body.spineseam", (0.085, 0.98, 0.055),
