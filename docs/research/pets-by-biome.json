@@ -1,0 +1,662 @@
+{
+ "forest": [
+  {
+   "id": "chicken",
+   "name": "Chicken",
+   "rarity": "common",
+   "income": 1
+  },
+  {
+   "id": "dog",
+   "name": "Dog",
+   "rarity": "common",
+   "income": 2
+  },
+  {
+   "id": "bird",
+   "name": "Bird",
+   "rarity": "uncommon",
+   "income": 8
+  },
+  {
+   "id": "burrowing-owl",
+   "name": "Burrowing Owl",
+   "rarity": "rare",
+   "income": 35
+  },
+  {
+   "id": "raccoon",
+   "name": "Raccoon",
+   "rarity": "rare",
+   "income": 45
+  },
+  {
+   "id": "fox",
+   "name": "Fox",
+   "rarity": "epic",
+   "income": 180
+  },
+  {
+   "id": "bear",
+   "name": "Bear",
+   "rarity": "epic",
+   "income": 240
+  },
+  {
+   "id": "branchwalker",
+   "name": "Branchwalker",
+   "rarity": "legendary",
+   "income": 1800
+  }
+ ],
+ "lake": [
+  {
+   "id": "frog",
+   "name": "Frog",
+   "rarity": "common",
+   "income": 3
+  },
+  {
+   "id": "duckling",
+   "name": "Duckling",
+   "rarity": "common",
+   "income": 4
+  },
+  {
+   "id": "catfish",
+   "name": "Catfish",
+   "rarity": "uncommon",
+   "income": 12
+  },
+  {
+   "id": "turtle",
+   "name": "Turtle",
+   "rarity": "rare",
+   "income": 60
+  },
+  {
+   "id": "anglerkin",
+   "name": "Anglerkin",
+   "rarity": "epic",
+   "income": 260
+  },
+  {
+   "id": "swan",
+   "name": "Swan",
+   "rarity": "epic",
+   "income": 320
+  },
+  {
+   "id": "axolotl",
+   "name": "Axolotl",
+   "rarity": "legendary",
+   "income": 2800
+  },
+  {
+   "id": "leviathan",
+   "name": "Leviathan",
+   "rarity": "cosmic",
+   "income": 220000
+  }
+ ],
+ "desert": [
+  {
+   "id": "jerboa",
+   "name": "Jerboa",
+   "rarity": "common",
+   "income": 6
+  },
+  {
+   "id": "fennec",
+   "name": "Fennec",
+   "rarity": "uncommon",
+   "income": 18
+  },
+  {
+   "id": "camel",
+   "name": "Camel",
+   "rarity": "rare",
+   "income": 75
+  },
+  {
+   "id": "dustpiper",
+   "name": "Dustpiper",
+   "rarity": "epic",
+   "income": 325
+  },
+  {
+   "id": "snake",
+   "name": "Snake",
+   "rarity": "legendary",
+   "income": 3600
+  },
+  {
+   "id": "sand-spider",
+   "name": "Sand Spider",
+   "rarity": "mythic",
+   "income": 16000
+  },
+  {
+   "id": "scorpion",
+   "name": "Scorpion",
+   "rarity": "mythic",
+   "income": 18500
+  },
+  {
+   "id": "royal-sphinx",
+   "name": "Royal Sphinx",
+   "rarity": "cosmic",
+   "income": 280000
+  }
+ ],
+ "jungle": [
+  {
+   "id": "chimpanzee",
+   "name": "Chimpanzee",
+   "rarity": "rare",
+   "income": 90
+  },
+  {
+   "id": "toucan",
+   "name": "Toucan",
+   "rarity": "rare",
+   "income": 110
+  },
+  {
+   "id": "crocodile",
+   "name": "Crocodile",
+   "rarity": "epic",
+   "income": 420
+  },
+  {
+   "id": "gorilla",
+   "name": "Gorilla",
+   "rarity": "legendary",
+   "income": 4800
+  },
+  {
+   "id": "pineape",
+   "name": "Pineape",
+   "rarity": "legendary",
+   "income": 5500
+  },
+  {
+   "id": "spider",
+   "name": "Spider",
+   "rarity": "mythic",
+   "income": 22000
+  },
+  {
+   "id": "tiger",
+   "name": "Tiger",
+   "rarity": "mythic",
+   "income": 28000
+  },
+  {
+   "id": "king-snake",
+   "name": "King Snake",
+   "rarity": "secret",
+   "income": 3500000
+  }
+ ],
+ "snow": [
+  {
+   "id": "penguin",
+   "name": "Penguin",
+   "rarity": "rare",
+   "income": 140
+  },
+  {
+   "id": "walrus",
+   "name": "Walrus",
+   "rarity": "epic",
+   "income": 600
+  },
+  {
+   "id": "polar-bear",
+   "name": "Polar Bear",
+   "rarity": "legendary",
+   "income": 7000
+  },
+  {
+   "id": "sabertooth-tiger",
+   "name": "Sabertooth Tiger",
+   "rarity": "mythic",
+   "income": 35000
+  },
+  {
+   "id": "mammoth",
+   "name": "Mammoth",
+   "rarity": "mythic",
+   "income": 42000
+  },
+  {
+   "id": "king-mammoth",
+   "name": "King Mammoth",
+   "rarity": "cosmic",
+   "income": 400000
+  },
+  {
+   "id": "yeti",
+   "name": "Yeti",
+   "rarity": "secret",
+   "income": 5000000
+  },
+  {
+   "id": "ice-dragon",
+   "name": "Ice Dragon",
+   "rarity": "eternal",
+   "income": 65000000
+  }
+ ],
+ "volcano": [
+  {
+   "id": "lava-gecko",
+   "name": "Lava Gecko",
+   "rarity": "rare",
+   "income": 180
+  },
+  {
+   "id": "lava-frog",
+   "name": "Lava Frog",
+   "rarity": "epic",
+   "income": 850
+  },
+  {
+   "id": "flaming-bull",
+   "name": "Flaming Bull",
+   "rarity": "legendary",
+   "income": 9500
+  },
+  {
+   "id": "lava-iguana",
+   "name": "Lava Iguana",
+   "rarity": "legendary",
+   "income": 11000
+  },
+  {
+   "id": "chili-imp",
+   "name": "Chili Imp",
+   "rarity": "mythic",
+   "income": 55000
+  },
+  {
+   "id": "cerberus",
+   "name": "Cerberus",
+   "rarity": "secret",
+   "income": 8000000
+  },
+  {
+   "id": "phoenix",
+   "name": "Phoenix",
+   "rarity": "eternal",
+   "income": 85000000
+  },
+  {
+   "id": "lava-dragon",
+   "name": "Lava Dragon",
+   "rarity": "eternal",
+   "income": 100000000
+  }
+ ],
+ "abyss": [
+  {
+   "id": "parrotfish",
+   "name": "Parrotfish",
+   "rarity": "rare",
+   "income": 220
+  },
+  {
+   "id": "swordfish",
+   "name": "Swordfish",
+   "rarity": "epic",
+   "income": 1100
+  },
+  {
+   "id": "shark",
+   "name": "Shark",
+   "rarity": "legendary",
+   "income": 15000
+  },
+  {
+   "id": "orca",
+   "name": "Orca",
+   "rarity": "mythic",
+   "income": 80000
+  },
+  {
+   "id": "whale-shark",
+   "name": "Whale Shark",
+   "rarity": "cosmic",
+   "income": 700000
+  },
+  {
+   "id": "beluga-whale",
+   "name": "Beluga Whale",
+   "rarity": "cosmic",
+   "income": 850000
+  },
+  {
+   "id": "kraken",
+   "name": "Kraken",
+   "rarity": "secret",
+   "income": 15000000
+  },
+  {
+   "id": "abyssal-maja",
+   "name": "Abyssal Maja",
+   "rarity": "eternal",
+   "income": 130000000
+  }
+ ],
+ "prehistoric": [
+  {
+   "id": "dodo",
+   "name": "Dodo",
+   "rarity": "rare",
+   "income": 280
+  },
+  {
+   "id": "pterodactyl",
+   "name": "Pterodactyl",
+   "rarity": "legendary",
+   "income": 22000
+  },
+  {
+   "id": "ankylosaurus",
+   "name": "Ankylosaurus",
+   "rarity": "mythic",
+   "income": 120000
+  },
+  {
+   "id": "triceratops",
+   "name": "Triceratops",
+   "rarity": "cosmic",
+   "income": 1200000
+  },
+  {
+   "id": "bronto",
+   "name": "Bronto",
+   "rarity": "cosmic",
+   "income": 1500000
+  },
+  {
+   "id": "t-rex",
+   "name": "T-Rex",
+   "rarity": "secret",
+   "income": 25000000
+  },
+  {
+   "id": "tarpitan",
+   "name": "Tarpitan",
+   "rarity": "secret",
+   "income": 32000000
+  },
+  {
+   "id": "mosasaurus",
+   "name": "Mosasaurus",
+   "rarity": "eternal",
+   "income": 180000000
+  }
+ ],
+ "event": [
+  {
+   "id": "mallet-sentry",
+   "name": "Mallet Sentry",
+   "rarity": "rare",
+   "income": 100
+  },
+  {
+   "id": "peelfin",
+   "name": "Peelfin",
+   "rarity": "epic",
+   "income": 400
+  },
+  {
+   "id": "scorpio",
+   "name": "Scorpio",
+   "rarity": "event",
+   "income": 10000
+  },
+  {
+   "id": "bellug",
+   "name": "Bellug",
+   "rarity": "mythic",
+   "income": 40000
+  },
+  {
+   "id": "froggo",
+   "name": "Froggo",
+   "rarity": "event",
+   "income": 50000
+  },
+  {
+   "id": "mangowing",
+   "name": "Mangowing",
+   "rarity": "cosmic",
+   "income": 800000
+  },
+  {
+   "id": "crawler",
+   "name": "Crawler",
+   "rarity": "event",
+   "income": 1500000
+  },
+  {
+   "id": "cocoa-croc",
+   "name": "Cocoa Croc",
+   "rarity": "secret",
+   "income": 20000000
+  },
+  {
+   "id": "crocodon",
+   "name": "Crocodon",
+   "rarity": "event",
+   "income": 30000000
+  },
+  {
+   "id": "mecha-scorpio",
+   "name": "Mecha Scorpio",
+   "rarity": "event",
+   "income": 45000000
+  },
+  {
+   "id": "drilla",
+   "name": "Drilla",
+   "rarity": "event",
+   "income": 100000000
+  },
+  {
+   "id": "strawberry-elephant",
+   "name": "Strawberry Elephant",
+   "rarity": "eternal",
+   "income": 110000000
+  },
+  {
+   "id": "mecha-froggo",
+   "name": "Mecha Froggo",
+   "rarity": "event",
+   "income": 155000000
+  },
+  {
+   "id": "mecha-crawler",
+   "name": "Mecha Crawler",
+   "rarity": "event",
+   "income": 320000000
+  },
+  {
+   "id": "krakenoid",
+   "name": "Krakenoid",
+   "rarity": "event",
+   "income": 500000000
+  },
+  {
+   "id": "mecha-crocodon",
+   "name": "Mecha Crocodon",
+   "rarity": "event",
+   "income": 680000000
+  },
+  {
+   "id": "mecha-krakenoid",
+   "name": "Mecha Krakenoid",
+   "rarity": "event",
+   "income": 1000000000
+  },
+  {
+   "id": "dreadscale",
+   "name": "Dreadscale",
+   "rarity": "event",
+   "income": 2000000000
+  },
+  {
+   "id": "mecha-dreadscale",
+   "name": "Mecha Dreadscale",
+   "rarity": "event",
+   "income": 4000000000
+  }
+ ],
+ "cosmic": [
+  {
+   "id": "centipede",
+   "name": "Centipede",
+   "rarity": "epic",
+   "income": 1500
+  },
+  {
+   "id": "cosmic-gecko",
+   "name": "Cosmic Gecko",
+   "rarity": "legendary",
+   "income": 30000
+  },
+  {
+   "id": "cosmic-gorilla",
+   "name": "Cosmic Gorilla",
+   "rarity": "mythic",
+   "income": 180000
+  },
+  {
+   "id": "ringhorn-bovid",
+   "name": "Ringhorn Bovid",
+   "rarity": "cosmic",
+   "income": 2200000
+  },
+  {
+   "id": "cosmic-skeleton-boss",
+   "name": "Cosmic Skeleton Boss",
+   "rarity": "secret",
+   "income": 45000000
+  },
+  {
+   "id": "cosmic-dragon",
+   "name": "Cosmic Dragon",
+   "rarity": "secret",
+   "income": 60000000
+  },
+  {
+   "id": "eternal-lunar-dragon",
+   "name": "Eternal Lunar Dragon",
+   "rarity": "eternal",
+   "income": 250000000
+  },
+  {
+   "id": "unicorn",
+   "name": "Unicorn",
+   "rarity": "divine",
+   "income": 1000000000
+  }
+ ],
+ "blossom": [
+  {
+   "id": "crane",
+   "name": "Crane",
+   "rarity": "epic",
+   "income": 4000
+  },
+  {
+   "id": "salamander",
+   "name": "Salamander",
+   "rarity": "legendary",
+   "income": 74000
+  },
+  {
+   "id": "red-panda",
+   "name": "Red Panda",
+   "rarity": "mythic",
+   "income": 450000
+  },
+  {
+   "id": "snowy-owl",
+   "name": "Snowy Owl",
+   "rarity": "cosmic",
+   "income": 7500000
+  },
+  {
+   "id": "koi",
+   "name": "Koi",
+   "rarity": "cosmic",
+   "income": 12000000
+  },
+  {
+   "id": "stag",
+   "name": "Stag",
+   "rarity": "secret",
+   "income": 145000000
+  },
+  {
+   "id": "kitsune",
+   "name": "Kitsune",
+   "rarity": "divine",
+   "income": 1800000000
+  }
+ ],
+ "titan": [
+  {
+   "id": "spideron",
+   "name": "Spideron",
+   "rarity": "legendary",
+   "income": 95000
+  },
+  {
+   "id": "crustacia",
+   "name": "Crustacia",
+   "rarity": "legendary",
+   "income": 130000
+  },
+  {
+   "id": "bladehide",
+   "name": "Bladehide",
+   "rarity": "mythic",
+   "income": 750000
+  },
+  {
+   "id": "mantaris",
+   "name": "Mantaris",
+   "rarity": "cosmic",
+   "income": 11000000
+  },
+  {
+   "id": "rhinotaur",
+   "name": "Rhinotaur",
+   "rarity": "cosmic",
+   "income": 17500000
+  },
+  {
+   "id": "mutant-shark",
+   "name": "Mutant Shark",
+   "rarity": "secret",
+   "income": 215000000
+  },
+  {
+   "id": "gorilla-king",
+   "name": "Gorilla King",
+   "rarity": "eternal",
+   "income": 880000000
+  },
+  {
+   "id": "nightflame",
+   "name": "Nightflame",
+   "rarity": "divine",
+   "income": 3000000000
+  }
+ ]
+}

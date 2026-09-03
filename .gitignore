@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.DS_Store
+*.local
+*.log
+.vite/
+tools/blender/__pycache__/
+tools/blender/generators/__pycache__/
+tools/blender/lib/__pycache__/
+__pycache__/
+*.blend1
+public/models/_smoke/
+public/models/build-report.json

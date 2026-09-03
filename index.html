@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0e14" />
+    <title>Egg Heist — first-person pet thievery</title>
+    <meta
+      name="description"
+      content="Sneak into guarded nests, steal an egg, outrun whatever wakes up, and build a garden of 107 pets. A first-person take on the Roblox steal-and-extract loop."
+    />
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+
+    <div id="overlay">
+      <div>
+        <h1>EGG HEIST</h1>
+        <p class="tag">
+          Eleven biomes. One hundred and seven pets. Something enormous asleep beside every nest.
+        </p>
+
+        <div class="keys">
+          <div><b>WASD</b> move</div>
+          <div><b>Shift</b> sprint</div>
+          <div><b>Space</b> jump</div>
+          <div><b>Ctrl</b> crouch</div>
+          <div><b>E</b> steal / use</div>
+          <div><b>Esc</b> close panel</div>
+        </div>
+
+        <p class="tag" style="max-width: 560px; margin: 0 auto 22px; font-size: 14px">
+          Speed is the only key in this game. It opens every biome, and it is the
+          only thing that gets you back out. Train it on the treadmill in your
+          garden, then go take something that is not yours.
+        </p>
+
+        <button class="start" id="start" disabled>Loading…</button>
+        <div class="bar"><i id="loading-bar"></i></div>
+        <div class="loading" id="loading">Starting up…</div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
