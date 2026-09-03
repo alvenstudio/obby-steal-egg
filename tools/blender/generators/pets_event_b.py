@@ -224,8 +224,8 @@ def _spur(name, at, size, length, rot, color=BONE, taper=0.86):
 # are what matter: the limb reaches its widest at 92% of the way out, then
 # comes BACK under itself and lifts. That hook is the entire difference
 # between a tentacle and an insect leg, and both krakens live or die on it.
-_TENT_R = (0.00, 0.42, 0.74, 0.94, 0.84, 0.66)
-_TENT_H = (1.00, 0.70, 0.38, 0.10, 0.00, 0.19)
+_TENT_R = (0.00, 0.34, 0.70, 1.00, 0.90, 0.64, 0.46)
+_TENT_H = (1.00, 0.62, 0.26, 0.04, 0.00, 0.05, 0.26)
 
 
 def _tentacle_pts(base, direction, reach, floor=0.015):
@@ -277,9 +277,9 @@ def build_mecha_scorpio():
     for i, (y, z) in enumerate(((0.00, 0.32), (-0.24, 0.32))):
         for side, sign in (("L", 1), ("R", -1)):
             body += _tube("body.strut%d.%s" % (i, side),
-                          [(sign * 0.22, y, z), (sign * 0.36, y - 0.02, z + 0.13),
-                           (sign * 0.41, y - 0.04, 0.0)],
-                          [0.052, 0.04], [STEEL_DK, PLATE])
+                          [(sign * 0.22, y, z), (sign * 0.37, y - 0.02, z + 0.14),
+                           (sign * 0.43, y - 0.04, 0.0)],
+                          [0.062, 0.048], [STEEL_DK, PLATE_MID])
 
     head_dims = (0.36, 0.26, 0.24)
     head_at = (0, 0.44, 0.44)
@@ -296,20 +296,29 @@ def build_mecha_scorpio():
 
     # Claw arms. Deliberately oversized: a scorpion without big pincers is a
     # bug, and at icon size the pincers are half the silhouette.
-    arm_pivot = (0.25, 0.24, 0.38)
+    arm_pivot = (0.26, 0.22, 0.36)
     parts = _tube("arm.L.strut",
-                  [arm_pivot, (0.38, 0.42, 0.44), (0.34, 0.56, 0.44)],
-                  [0.09, 0.08], [STEEL_DK, PLATE_MID])
-    parts.append(_b("arm.L.wrist", (0.18, 0.15, 0.16), (0.33, 0.64, 0.45),
+                  [arm_pivot, (0.44, 0.42, 0.42), (0.43, 0.58, 0.44)],
+                  [0.095, 0.085], [STEEL_DK, PLATE_MID])
+    parts.append(_b("arm.L.wrist", (0.19, 0.16, 0.17), (0.42, 0.66, 0.45),
                     color=HULL))
-    # An open pincer: two thick shears with daylight between them.
-    parts.append(bk.wedge("arm.L.jaw.up", (0.10, 0.14, 0.28),
-                          (0.37, 0.79, 0.56), rot=(-62, 0, 12),
-                          color=STEEL, taper=0.66))
-    parts.append(bk.wedge("arm.L.jaw.lo", (0.10, 0.14, 0.26),
-                          (0.29, 0.79, 0.34), rot=(-118, 0, -12),
-                          color=STEEL_DK, taper=0.66))
-    parts.append(_b("arm.L.lamp", (0.05, 0.045, 0.05), (0.33, 0.68, 0.52),
+    # An open pincer. Each shear is a thick straight base with a tapered tip
+    # bent onto it, not one long wedge: mass at the hinge and a point at the
+    # end is what separates a claw from an arrowhead.
+    for tag, z0, ang, zt, col in (("up", 0.55, -125, 0.481, STEEL),
+                                  ("lo", 0.37, -55, 0.439, STEEL_DK)):
+        parts.append(_b("arm.L.jaw.%s" % tag, (0.12, 0.22, 0.12),
+                        (0.42, 0.78, z0), color=col))
+        parts.append(bk.wedge("arm.L.jawtip.%s" % tag, (0.10, 0.14, 0.25),
+                              (0.42, 0.985, zt), rot=(ang, 0, 0),
+                              color=STEEL_LT, taper=0.78))
+        # Serrations on the biting face only -- three is plenty at icon size.
+        for j in range(3):
+            parts.append(_b("arm.L.serr.%s%d" % (tag, j), (0.095, 0.05, 0.035),
+                            (0.42, 0.72 + j * 0.07,
+                             z0 - 0.072 if tag == "up" else z0 + 0.072),
+                            color=PLATE_DK))
+    parts.append(_b("arm.L.lamp", (0.05, 0.045, 0.05), (0.42, 0.70, 0.46),
                     material=_emit(HAZARD, 3.2)))
     claw_l = _join("arm.L", parts, arm_pivot)
     claw_r = _mirror(claw_l, "arm.R")
@@ -318,11 +327,13 @@ def build_mecha_scorpio():
     for tag, (x, y, z) in (("FL", (0.22, 0.16, 0.32)), ("BL", (0.23, -0.12, 0.32))):
         knee_y = y + (0.03 if tag == "FL" else -0.05)
         parts = _tube("leg.%s.seg" % tag,
-                      [(x, y, z), (x + 0.15, knee_y, z + 0.14),
-                       (x + 0.20, knee_y + 0.03, 0.015)],
-                      [0.052, 0.042], [STEEL_DK, PLATE])
-        parts.append(_b("leg.%s.pad" % tag, (0.07, 0.09, 0.03),
-                        (x + 0.20, knee_y + 0.04, 0.015), color=PLATE_DK))
+                      [(x, y, z), (x + 0.16, knee_y, z + 0.15),
+                       (x + 0.22, knee_y + 0.03, 0.018)],
+                      [0.068, 0.052], [HULL, PLATE_MID])
+        parts.append(_b("leg.%s.knee" % tag, (0.08, 0.07, 0.08),
+                        (x + 0.16, knee_y, z + 0.15), color=STEEL_DK))
+        parts.append(_b("leg.%s.pad" % tag, (0.09, 0.11, 0.035),
+                        (x + 0.22, knee_y + 0.04, 0.018), color=PLATE_DK))
         left = _join("leg.%s" % tag, parts, (x, y, z))
         legs["leg.%s" % tag] = left
         legs["leg.%sR" % tag[0]] = _mirror(left, "leg.%sR" % tag[0])
@@ -417,26 +428,31 @@ def build_drilla():
     # The drill itself: one clean cone with a hazard-yellow helix wound round
     # it. Stacked twisted boxes read as noise at icon size; a cone plus three
     # spiral tracks reads as a drill from any angle.
-    drill_y0, drill_len, drill_r = 0.36, 0.58, 0.165
-    drill_z = 0.52
-    head.append(bk.cylinder("head.collar", r=0.20, h=0.09,
+    # ENORMOUS is the brief and enormous is the read: the drill is wider than
+    # the cab and two thirds as long as the whole chassis. Anything smaller
+    # and the pet is just a bulldozer.
+    drill_y0, drill_len, drill_r = 0.34, 0.66, 0.225
+    drill_z = 0.50
+    head.append(bk.cylinder("head.collar", r=0.28, h=0.11,
                             loc=(0, drill_y0, drill_z), rot=(90, 0, 0),
                             color=PLATE_DK, verts=12))
-    head.append(kit.cone("head.drill", r1=drill_r, r2=0.012, h=drill_len,
+    head += _hazard_strip("head.collartape", (0, drill_y0 + 0.06, drill_z + 0.30),
+                          (0.42, 0.06, 0.06), count=6, axis="x")
+    head.append(kit.cone("head.drill", r1=drill_r, r2=0.014, h=drill_len,
                          loc=(0, drill_y0 + drill_len * 0.5, drill_z),
                          rot=(-90, 0, 0), material=_metal(STEEL, 0.32),
                          verts=12))
     for f in range(3):
-        for i in range(4):
-            t = (i + 0.4) / 4.0
-            rad = drill_r * (1.0 - t) * 1.02
-            ang = math.radians(f * 120 + t * 190)
+        for i in range(5):
+            t = (i + 0.35) / 5.0
+            rad = drill_r * (1.0 - t) * 1.03
+            ang = math.radians(f * 120 + t * 210)
             head.append(_b("head.helix%d_%d" % (f, i),
-                           (0.06, 0.13, 0.06),
+                           (0.075, 0.15, 0.075),
                            (math.sin(ang) * rad, drill_y0 + t * drill_len,
                             drill_z + math.cos(ang) * rad),
                            color=(HAZARD if i % 2 == 0 else PLATE_DK)))
-    head.append(_b("head.bit", (0.045, 0.10, 0.045), (0, drill_y0 + drill_len,
+    head.append(_b("head.bit", (0.055, 0.13, 0.055), (0, drill_y0 + drill_len,
                                                       drill_z),
                    color=STEEL_LT))
 
@@ -534,10 +550,19 @@ def build_strawberry_elephant():
     head_at = (0, 0.32, 0.58)
     head = [_b("head.skull", head_dims, head_at, color=PINK, seg=2)]
     head.append(_b("head.dome", (0.23, 0.20, 0.08), (0, 0.31, 0.73), color=PINK))
-    # A thin gold circlet instead of jewellery at the feet: eternal rarity
-    # should read from the face, which is where the eye goes first.
-    head.append(_b("head.circlet", (0.25, 0.22, 0.028), (0, 0.31, 0.775),
-                   material=_emit(GOLD, 1.6)))
+    # Eternal rarity has to read from the face, which is where the eye goes
+    # first -- but a flat gold plate on the forehead reads as a sticky
+    # note. Eight studs around the crown and one lit stone at the brow.
+    for i in range(8):
+        ang = i * 45.0
+        head.append(_b("head.circlet%d" % i, (0.055, 0.055, 0.06),
+                       (math.sin(math.radians(ang)) * 0.115,
+                        0.31 + math.cos(math.radians(ang)) * 0.095, 0.77),
+                       rot=(0, 0, ang), color=GOLD))
+    head.append(_b("head.jewelmount", (0.10, 0.07, 0.10), (0, 0.40, 0.80),
+                   color=GOLD))
+    head += bk.gem("head.jewel", (0, 0.44, 0.81), size=0.105,
+                   color=BERRY, strength=4.4)
     head += bk.eyes("head.eye", head_at, head_dims, spacing=0.58, height=0.04,
                     size=0.058, style="white", iris="#3a2028", pupil_scale=0.55)
     # Trunk: five shrinking segments curling down and out over the berry.
@@ -610,11 +635,18 @@ def build_mecha_froggo():
 
     # Low, wide and short: a frog's mass sits between its shoulders and its
     # folded haunches, so the torso is barely longer than it is wide.
-    body_dims = (0.54, 0.42, 0.30)
-    body_at = (0, -0.04, 0.36)
+    body_dims = (0.56, 0.44, 0.28)
+    body_at = (0, -0.04, 0.34)
     body = [_b("body.shell", body_dims, body_at, color=HULL, seg=2)]
-    body.append(_b("body.back", (0.40, 0.36, 0.10), (0, -0.08, 0.53),
+    # A stepped dome instead of one flat lid: a frog's back is a curve, and a
+    # single slab up there was the thing making this read as a crouching dog.
+    body.append(_b("body.back", (0.46, 0.38, 0.09), (0, -0.06, 0.50),
                    color=PLATE))
+    body.append(_b("body.dome", (0.32, 0.28, 0.08), (0, -0.04, 0.57),
+                   color=PLATE_MID))
+    for side, sign in (("L", 1), ("R", -1)):
+        body.append(_b("body.gill.%s" % side, (0.045, 0.20, 0.035),
+                       (sign * 0.28, -0.02, 0.36), material=_emit(CYAN, 3.0)))
     body += bk.belly("body.plate", body_at, body_dims, color=STEEL_LT, inset=0.7)
     # Reactor core in the chest -- the frog's lit throat sac.
     body.append(_b("body.corering", (0.22, 0.05, 0.19), (0, 0.16, 0.33),
@@ -636,34 +668,41 @@ def build_mecha_froggo():
     # Turret eyes. A frog's eyes stand off the skull; these are stalked
     # housings with the lens facing forward-up, and they carry the read.
     for side, sign in (("L", 1), ("R", -1)):
-        head.append(_b("head.stalk.%s" % side, (0.07, 0.07, 0.07),
-                       (sign * 0.14, head_at[1] - 0.02, head_at[2] + 0.12),
+        head.append(_b("head.stalk.%s" % side, (0.075, 0.075, 0.07),
+                       (sign * 0.17, head_at[1] - 0.02, head_at[2] + 0.12),
                        color=STEEL_DK))
-        head.append(_b("head.turret.%s" % side, (0.15, 0.15, 0.14),
-                       (sign * 0.14, head_at[1] - 0.01, head_at[2] + 0.22),
+        head.append(_b("head.turret.%s" % side, (0.17, 0.17, 0.16),
+                       (sign * 0.17, head_at[1] - 0.01, head_at[2] + 0.23),
                        color=HULL))
         head += _lens("head.tlens.%s" % side,
-                      (sign * 0.14, head_at[1] + 0.065, head_at[2] + 0.23),
-                      0.088, color=CYAN, strength=4.8, depth=0.055)
-        head.append(_b("head.cap.%s" % side, (0.16, 0.16, 0.032),
-                       (sign * 0.14, head_at[1] - 0.01, head_at[2] + 0.30),
+                      (sign * 0.17, head_at[1] + 0.075, head_at[2] + 0.24),
+                      0.098, color=CYAN, strength=4.8, depth=0.06)
+        head.append(_b("head.cap.%s" % side, (0.18, 0.18, 0.034),
+                       (sign * 0.17, head_at[1] - 0.01, head_at[2] + 0.32),
                        color=PLATE_DK))
 
     # Hind legs. The knee has to stand clearly ABOVE the back or the pose
     # reads as a dog: hip low, knee up behind the shoulder, ankle down front.
     legs = {}
-    hip = (0.24, -0.12, 0.36)
-    parts = _tube("leg.BL.seg", [hip, (0.31, -0.30, 0.60), (0.29, -0.12, 0.14)],
-                  [0.145, 0.105], [HULL, PLATE])
-    parts.append(_b("leg.BL.knee", (0.16, 0.15, 0.15), (0.31, -0.30, 0.60),
+    # The knee has to stand clearly OUTSIDE and ABOVE the back, or the pose
+    # is a dog's. Hip low and inboard, knee high and wide, ankle forward.
+    hip = (0.24, -0.10, 0.34)
+    parts = _tube("leg.BL.seg", [hip, (0.38, -0.32, 0.66), (0.31, -0.06, 0.13)],
+                  [0.15, 0.11], [HULL, PLATE])
+    parts.append(_b("leg.BL.knee", (0.18, 0.17, 0.17), (0.38, -0.32, 0.66),
                     color=PLATE_MID))
-    parts.append(_piston("leg.BL.ram", (0.23, -0.18, 0.42), (0.29, -0.14, 0.18),
-                         r=0.026))
-    parts.append(_b("leg.BL.foot", (0.15, 0.26, 0.06), (0.29, 0.0, 0.035),
+    parts.append(_b("leg.BL.cap", (0.19, 0.10, 0.05), (0.38, -0.32, 0.76),
+                    color=HAZARD))
+    parts.append(_piston("leg.BL.ram", (0.24, -0.18, 0.42), (0.31, -0.10, 0.18),
+                         r=0.028))
+    # Webbed foot: a wide splayed plate with three toes standing proud of it.
+    parts.append(_b("leg.BL.foot", (0.22, 0.30, 0.055), (0.31, 0.08, 0.032),
                     color=PLATE))
-    for j, dx in enumerate((-0.05, 0.0, 0.05)):
-        parts.append(_b("leg.BL.toe%d" % j, (0.04, 0.12, 0.045),
-                        (0.29 + dx, 0.15, 0.035), color=STEEL_DK))
+    for j, dx in enumerate((-0.075, 0.0, 0.075)):
+        parts.append(_b("leg.BL.toe%d" % j, (0.05, 0.16, 0.05),
+                        (0.31 + dx, 0.24, 0.034), color=STEEL_DK))
+        parts.append(_b("leg.BL.web%d" % j, (0.05, 0.05, 0.03),
+                        (0.31 + dx, 0.33, 0.030), color=CYAN_DK))
     leg_bl = _join("leg.BL", parts, hip)
     legs["leg.BL"] = leg_bl
     legs["leg.BR"] = _mirror(leg_bl, "leg.BR")
@@ -715,9 +754,20 @@ def build_mecha_crawler():
                        seg=(2 if i == 0 else 1)))
         body.append(_b("body.ring%d" % i, (w * 0.9, 0.06, h * 1.05),
                        (0, y + 0.09, z), color=PLATE_DK))
-        body.append(bk.wedge("body.dorsal%d" % i, (w * 0.34, 0.13, 0.16),
-                             (0, y, z + h * 0.5 + 0.06), color=STEEL,
+        body.append(bk.wedge("body.dorsal%d" % i, (w * 0.34, 0.13, 0.17),
+                             (0, y, z + h * 0.5 + 0.07),
+                             color=(STEEL_LT if i % 2 == 0 else HAZARD),
                              taper=0.55))
+        # A lit slot down each flank. Segmentation you cannot see is not
+        # segmentation, and grey-on-grey plate joins vanish at icon size.
+        for side, sign in (("L", 1), ("R", -1)):
+            body.append(_b("body.slot%d.%s" % (i, side), (0.035, 0.11, 0.04),
+                           (sign * w * 0.5, y, z - h * 0.20),
+                           material=_emit(CYAN, 3.4)))
+            body.append(_b("body.cheekplate%d.%s" % (i, side),
+                           (0.04, 0.14, h * 0.5),
+                           (sign * w * 0.5, y, z + h * 0.12),
+                           color=PLATE_DK))
     body += _hazard_strip("body.tape", (0, 0.10, 0.28), (0.46, 0.05, 0.05),
                           count=6, axis="x")
     # Four static legs so the count reads as "many".
@@ -740,9 +790,9 @@ def build_mecha_crawler():
                                                     head_at[2] + 0.02),
                    material=_emit("#fff0a0", 5.4)))
     for side, sign in (("L", 1), ("R", -1)):
-        head.append(bk.wedge("head.mand.%s" % side, (0.055, 0.055, 0.19),
-                             (sign * 0.11, head_at[1] + 0.19, head_at[2] - 0.10),
-                             rot=(-84, -sign * 22, 0), color=STEEL_LT, taper=0.82))
+        head.append(bk.wedge("head.mand.%s" % side, (0.07, 0.07, 0.24),
+                             (sign * 0.12, head_at[1] + 0.22, head_at[2] - 0.11),
+                             rot=(-84, -sign * 26, 0), color=STEEL_LT, taper=0.82))
         head.append(_b("head.cheek.%s" % side, (0.055, 0.18, 0.15),
                        (sign * 0.17, head_at[1] + 0.02, head_at[2] - 0.02),
                        color=PLATE_DK))
@@ -836,10 +886,10 @@ def build_krakenoid():
     # Two extra tentacles trailing behind, welded into the body, so the
     # creature reads as eight-limbed from every angle rather than four.
     for side, sign in (("L", 1), ("R", -1)):
-        pts = _tentacle_pts((sign * 0.15, -0.16, 0.44), (sign * 0.55, -0.95),
-                            0.40)
+        pts = _tentacle_pts((sign * 0.16, -0.14, 0.44), (sign * 0.72, -0.70),
+                            0.56)
         body += _tube("body.tent.%s" % side, pts,
-                      [0.075, 0.064, 0.052, 0.040, 0.030],
+                      [0.085, 0.070, 0.056, 0.042, 0.031, 0.022],
                       [PURPLE, PURPLE_DK])
 
     head_dims = (0.42, 0.30, 0.32)
@@ -869,7 +919,7 @@ def build_krakenoid():
     arm_pts = [arm_pivot, (0.31, 0.44, 0.74), (0.39, 0.64, 0.80),
                (0.41, 0.80, 0.71), (0.35, 0.88, 0.55), (0.25, 0.85, 0.45)]
     parts = _tube("arm.L.seg", arm_pts, [0.105, 0.088, 0.072, 0.056, 0.042],
-                  [PURPLE, PURPLE_LT])
+                  [PURPLE_LT, PURPLE])
     parts += _suckers("arm.L.sucker", arm_pts[1:5], size=0.032)
     arm_l = _join("arm.L", parts, arm_pivot)
     arm_r = _mirror(arm_l, "arm.R")
@@ -877,14 +927,14 @@ def build_krakenoid():
     legs = {}
     # Four hanging tentacles on splayed headings, each with the J-hook tip.
     leg_spec = {
-        "FL": ((0.14, 0.22, 0.46), (0.96, 0.46), 0.44),
-        "BL": ((0.16, 0.02, 0.46), (0.98, -0.34), 0.42),
+        "FL": ((0.11, 0.26, 0.46), (0.72, 0.85), 0.64),
+        "BL": ((0.16, 0.12, 0.46), (1.00, 0.05), 0.58),
     }
     for tag, (base, heading, reach) in leg_spec.items():
         pts = _tentacle_pts(base, heading, reach)
         parts = _tube("leg.%s.seg" % tag, pts,
-                      [0.090, 0.076, 0.060, 0.046, 0.034],
-                      [PURPLE, PURPLE_DK])
+                      [0.110, 0.092, 0.072, 0.052, 0.038, 0.027],
+                      [PURPLE_LT, PURPLE])
         parts += _suckers("leg.%s.sucker" % tag, pts[1:4], size=0.026,
                           inset=0.03)
         left = _join("leg.%s" % tag, parts, base)
@@ -915,7 +965,7 @@ def build_mecha_crocodon():
 
     body_dims = (0.44, 0.52, 0.26)
     body_at = (0, -0.12, 0.36)
-    body = [_b("body.hull", body_dims, body_at, color=PLATE, seg=2)]
+    body = [_b("body.hull", body_dims, body_at, color=PLATE_MID, seg=2)]
     body.append(_b("body.back", (0.34, 0.46, 0.09), (0, -0.12, 0.50),
                    color=HULL))
     body += bk.belly("body.plate", body_at, body_dims, color=STEEL_DK, inset=0.7)
@@ -928,7 +978,9 @@ def build_mecha_crocodon():
                              color=STEEL, taper=0.6))
     for side, sign in (("L", 1), ("R", -1)):
         body.append(_b("body.skirt.%s" % side, (0.06, 0.46, 0.14),
-                       (sign * 0.23, -0.12, 0.32), color=PLATE_MID))
+                       (sign * 0.23, -0.12, 0.32), color=HULL))
+        body.append(_b("body.vent.%s" % side, (0.035, 0.24, 0.035),
+                       (sign * 0.26, -0.12, 0.34), material=_emit(REDD, 2.6)))
     body += _hazard_strip("body.tape", (0, -0.34, 0.55), (0.30, 0.07, 0.035),
                           count=6, axis="x")
     # Shoulder cannons, mounted high so the machine outranks its own jaws.
@@ -949,13 +1001,20 @@ def build_mecha_crocodon():
     # that shares a column with its shoulders just reads as a dog.
     head_dims = (0.28, 0.22, 0.20)
     head_at = (0, 0.38, 0.44)
-    head = [_b("head.skull", head_dims, head_at, color=PLATE_MID, seg=2)]
+    head = [_b("head.skull", head_dims, head_at, color=HULL, seg=2)]
     head.append(_b("head.upper", (0.24, 0.30, 0.09), (0, 0.63, 0.44),
-                   color=HULL))
-    head.append(_b("head.snout", (0.17, 0.22, 0.075), (0, 0.89, 0.44),
                    color=PLATE_MID))
+    head += _hazard_strip("head.tape", (0, 0.63, 0.495), (0.22, 0.28, 0.03),
+                          count=5, axis="y")
+    head.append(_b("head.snout", (0.17, 0.22, 0.075), (0, 0.89, 0.44),
+                   color=STEEL_DK))
     head.append(_b("head.nostril", (0.11, 0.05, 0.05), (0, 1.00, 0.46),
                    color=PLATE_DK))
+    head.append(_b("head.snoutlamp", (0.09, 0.16, 0.025), (0, 0.90, 0.482),
+                   material=_emit(REDG, 3.6)))
+    for side, sign in (("L", 1), ("R", -1)):
+        head.append(_b("head.snoutrib.%s" % side, (0.025, 0.20, 0.05),
+                       (sign * 0.088, 0.89, 0.45), color=HULL))
     # Gape: a dark gap with the lower jaw hinged open under it.
     head.append(_b("head.gape", (0.20, 0.44, 0.035), (0, 0.72, 0.375),
                    color=PLATE_DK))
@@ -970,6 +1029,14 @@ def build_mecha_crocodon():
         head.append(bk.wedge("head.tooth.uR%d" % j, (0.032, 0.032, 0.06),
                              (-0.085 + abs(t) * 0.02, y, 0.395),
                              rot=(180, 0, 0), color=STEEL_LT, taper=0.8))
+        # Lower teeth interleave with the upper ones -- a gape with only
+        # one row of teeth reads as a letterbox, not a mouth.
+        for lx in (0.075, -0.075):
+            head.append(bk.wedge("head.tooth.l%d_%d" % (j, lx > 0),
+                                 (0.028, 0.028, 0.055),
+                                 (lx - abs(t) * 0.015 * (1 if lx > 0 else -1),
+                                  y + 0.028, 0.355),
+                                 color=STEEL_LT, taper=0.8))
     # Jaw actuators, visible on both cheeks.
     for side, sign in (("L", 1), ("R", -1)):
         head.append(_piston("head.ram.%s" % side, (sign * 0.15, 0.40, 0.44),
@@ -1001,15 +1068,15 @@ def build_mecha_crocodon():
         legs["leg.%s" % tag] = left
         legs["leg.%sR" % tag[0]] = _mirror(left, "leg.%sR" % tag[0])
 
-    tail_pts = [(0, -0.38, 0.36), (0, -0.54, 0.34), (0, -0.68, 0.30),
-                (0, -0.80, 0.23), (0, -0.89, 0.14)]
+    tail_pts = [(0, -0.38, 0.36), (0, -0.52, 0.34), (0, -0.64, 0.29),
+                (0, -0.74, 0.22), (0, -0.81, 0.13)]
     tail = _tube("tail.seg", tail_pts, [0.24, 0.20, 0.16, 0.12],
                  [PLATE, PLATE_MID])
     for i in range(4):
-        tail.append(bk.wedge("tail.fin%d" % i, (0.05, 0.09, 0.18 - 0.03 * i),
-                             (0, -0.47 - i * 0.13, 0.48 - i * 0.045),
+        tail.append(bk.wedge("tail.fin%d" % i, (0.05, 0.09, 0.19 - 0.03 * i),
+                             (0, -0.46 - i * 0.115, 0.48 - i * 0.045),
                              rot=(14 * i, 0, 0), color=STEEL, taper=0.6))
-    tail.append(_b("tail.tip", (0.07, 0.10, 0.07), (0, -0.93, 0.11),
+    tail.append(_b("tail.tip", (0.07, 0.10, 0.07), (0, -0.85, 0.10),
                    color=STEEL_DK))
 
     groups = {
@@ -1037,17 +1104,17 @@ def build_mecha_krakenoid():
 
     mantle_at = (0, -0.22, 0.72)
     body = [_taper_block("body.mantle", (0.44, 0.40, 0.64), mantle_at,
-                         color=PLATE, bottom=0.60, seg=2)]
+                         color=PLATE_MID, bottom=0.60, seg=2)]
     body[0].rotation_euler = (math.radians(-13), 0, 0)
     # Same pointed hood as the organic twin, machined: a cowl, a mast and a
     # hazard-lit beacon where the flesh version has a horn.
-    body.append(bk.wedge("body.crown", (0.30, 0.28, 0.24), (0, -0.32, 1.08),
-                         color=PLATE_MID, taper=0.55))
+    body.append(bk.wedge("body.crown", (0.34, 0.32, 0.34), (0, -0.32, 1.12),
+                         color=HULL, taper=0.62))
     body += _hazard_strip("body.cowl", (0, -0.32, 1.00), (0.30, 0.24, 0.04),
                           count=5, axis="x")
-    body.append(_b("body.mast", (0.035, 0.035, 0.18), (0, -0.33, 1.28),
+    body.append(_b("body.mast", (0.04, 0.04, 0.18), (0, -0.33, 1.38),
                    color=STEEL_DK))
-    body.append(_b("body.beacon", (0.055, 0.055, 0.055), (0, -0.33, 1.38),
+    body.append(_b("body.beacon", (0.06, 0.06, 0.06), (0, -0.33, 1.48),
                    material=_emit(REDG, 4.6)))
     # Reactor spine: three vents burning through the mantle plate.
     for i in range(3):
@@ -1067,17 +1134,17 @@ def build_mecha_krakenoid():
     body += _hazard_strip("body.tape", (0, -0.02, 0.50), (0.34, 0.07, 0.035),
                           count=6, axis="x")
     for side, sign in (("L", 1), ("R", -1)):
-        pts = _tentacle_pts((sign * 0.15, -0.18, 0.46), (sign * 0.55, -0.95),
-                            0.40)
+        pts = _tentacle_pts((sign * 0.16, -0.16, 0.46), (sign * 0.72, -0.70),
+                            0.56)
         body += _tube("body.cable.%s" % side, pts,
-                      [0.072, 0.060, 0.048, 0.038, 0.028],
-                      [PLATE_DK, STEEL_DK])
+                      [0.082, 0.068, 0.054, 0.040, 0.030, 0.021],
+                      [PLATE_MID, STEEL_DK])
 
     head_dims = (0.42, 0.30, 0.32)
     head_at = (0, 0.16, 0.56)
-    head = [_b("head.case", head_dims, head_at, color=PLATE_MID, seg=2)]
+    head = [_b("head.case", head_dims, head_at, color=HULL, seg=2)]
     head.append(_b("head.hood", (0.44, 0.22, 0.09), (0, 0.14, 0.74),
-                   color=PLATE))
+                   color=PLATE_MID))
     face_y = head_at[1] + head_dims[1] * 0.5
     # Optic cluster: same layout as the krakenoid's eyes, machined.
     for i, (dx, dz, size) in enumerate(_KRAKEN_EYES):
@@ -1104,7 +1171,7 @@ def build_mecha_krakenoid():
     arm_pts = [arm_pivot, (0.31, 0.44, 0.76), (0.39, 0.64, 0.82),
                (0.41, 0.80, 0.73), (0.35, 0.88, 0.57), (0.25, 0.85, 0.47)]
     parts = _tube("arm.L.seg", arm_pts, [0.100, 0.084, 0.068, 0.054, 0.040],
-                  [PLATE_DK, STEEL_DK])
+                  [HULL, PLATE_MID])
     for j, pt in enumerate(arm_pts[1:5]):
         parts.append(_b("arm.L.knuckle%d" % j,
                         (0.082 - j * 0.014, 0.05, 0.082 - j * 0.014),
@@ -1120,14 +1187,14 @@ def build_mecha_krakenoid():
 
     legs = {}
     leg_spec = {
-        "FL": ((0.14, 0.22, 0.48), (0.96, 0.46), 0.44),
-        "BL": ((0.16, 0.02, 0.48), (0.98, -0.34), 0.42),
+        "FL": ((0.11, 0.26, 0.48), (0.72, 0.85), 0.64),
+        "BL": ((0.16, 0.12, 0.48), (1.00, 0.05), 0.58),
     }
     for tag, (base, heading, reach) in leg_spec.items():
         pts = _tentacle_pts(base, heading, reach)
         parts = _tube("leg.%s.seg" % tag, pts,
-                      [0.086, 0.072, 0.058, 0.044, 0.032],
-                      [PLATE_DK, STEEL_DK])
+                      [0.105, 0.088, 0.068, 0.050, 0.036, 0.026],
+                      [HULL, PLATE_MID])
         for j, pt in enumerate(pts[1:4]):
             parts.append(_b("leg.%s.node%d" % (tag, j), (0.026, 0.026, 0.026),
                             (pt[0] - 0.03, pt[1], pt[2] - 0.02),
@@ -1240,26 +1307,33 @@ def build_dreadscale():
 
     # Membrane wings: a webbed slab with three bone fingers and a leading spar.
     wing_pivot = (0.20, 0.02, 0.96)
-    parts = [_b("wing.L.web", (0.58, 0.04, 0.50), (0.50, -0.06, 1.00),
-                rot=(0, -24, 0), color="#2b2333")]
-    parts.append(_b("wing.L.web2", (0.38, 0.035, 0.34), (0.66, -0.14, 0.72),
-                    rot=(0, -38, 0), color="#1c1824"))
+    parts = [_b("wing.L.web", (0.72, 0.04, 0.54), (0.58, -0.06, 1.02),
+                rot=(0, -26, 0), color="#332a3d")]
+    parts.append(_b("wing.L.web2", (0.44, 0.035, 0.36), (0.86, -0.14, 0.72),
+                    rot=(0, -42, 0), color="#241e2e"))
+    # Three trailing points. A membrane with a straight back edge is a
+    # sail; the scallops are what make it a wing.
+    for j, (x, z, sz) in enumerate(((0.48, 0.60, 0.22), (0.72, 0.72, 0.19),
+                                    (0.92, 0.84, 0.15))):
+        parts.append(bk.wedge("wing.L.point%d" % j, (sz * 0.5, 0.04, sz),
+                              (x, -0.06, z), rot=(180, 0, 0),
+                              color="#241e2e", taper=0.75))
     # Bone claws along the leading edge -- the only pale note on the wing.
-    for j, (x, z) in enumerate(((0.34, 1.26), (0.58, 1.22))):
+    for j, (x, z) in enumerate(((0.36, 1.26), (0.66, 1.24))):
         parts.append(bk.wedge("wing.L.hook%d" % j, (0.035, 0.035, 0.10),
                               (x, 0.0, z), rot=(-96, -18, 0), color=BONE,
                               taper=0.85))
-    parts.append(_b("wing.L.spar", (0.62, 0.05, 0.06), (0.50, -0.02, 1.20),
-                    rot=(0, -12, 0), color="#574c62"))
+    parts.append(_b("wing.L.spar", (0.78, 0.055, 0.065), (0.58, -0.02, 1.22),
+                    rot=(0, -14, 0), color="#6a5d78"))
     # Thin fingers. Fat ones turn the wing into a bone rack rather than a
     # membrane with bones in it.
     for j in range(3):
         t = (j + 1) / 4.0
-        parts.append(_b("wing.L.finger%d" % j, (0.03, 0.05, 0.44 - 0.06 * j),
-                        (0.24 + t * 0.56, -0.06, 1.02 - t * 0.10),
+        parts.append(_b("wing.L.finger%d" % j, (0.032, 0.05, 0.50 - 0.06 * j),
+                        (0.24 + t * 0.70, -0.06, 1.04 - t * 0.12),
                         rot=(0, 8 + 14 * j, 0),
-                        color="#3d3648"))
-    parts.append(bk.wedge("wing.L.claw", (0.04, 0.04, 0.13), (0.80, 0.0, 1.24),
+                        color="#4a4256"))
+    parts.append(bk.wedge("wing.L.claw", (0.045, 0.045, 0.15), (1.00, 0.0, 1.24),
                           rot=(-90, -40, 0), color="#efe6c8", taper=0.85))
     wing_l = _join("wing.L", parts, wing_pivot)
     wing_r = _mirror(wing_l, "wing.R")
@@ -1329,219 +1403,264 @@ def build_mecha_dreadscale():
     kit.reset_scene()
     root = kit.empty("root")
 
-    chest_at = (0, 0.02, 0.80)
-    body = [_b("body.chest", (0.50, 0.50, 0.58), chest_at, color=PLATE, seg=2)]
-    body.append(_b("body.hips", (0.44, 0.40, 0.42), (0, -0.34, 0.54),
-                   color=PLATE_MID, seg=2))
-    body.append(_b("body.waist", (0.34, 0.22, 0.34), (0, -0.16, 0.66),
-                   color=PLATE_DK))
+    # ---- torso -----------------------------------------------------------
+    # Same skeleton as the organic twin, one size up and rearing harder: the
+    # hips sit low and back, the chest stands nearly vertical, and everything
+    # above the shoulder line is deliberately kept clear so the head has air
+    # around it. Crowding the skull was what made the first pass read as a
+    # scrapheap rather than a war machine.
+    # Value matters more than hue here. A torso in the darkest plate colour
+    # becomes a hole between two pale wings on the contact sheet, so the big
+    # masses are mid-grey and the DARK tone is reserved for the recesses.
+    chest_at = (0, 0.02, 0.86)
+    body = [_b("body.chest", (0.52, 0.50, 0.60), chest_at, color=PLATE_MID,
+               seg=2)]
+    body.append(_b("body.hips", (0.46, 0.42, 0.44), (0, -0.36, 0.54),
+                   color=HULL, seg=2))
+    body.append(_b("body.waist", (0.36, 0.24, 0.34), (0, -0.17, 0.68),
+                   color=PLATE))
     # Layered skirt armour over the hips -- weight the organic twin lacks.
     for i in range(3):
-        body.append(_b("body.skirt%d" % i, (0.46 - i * 0.05, 0.10, 0.14),
-                       (0, -0.24 - i * 0.11, 0.44 - i * 0.05),
+        body.append(_b("body.skirt%d" % i, (0.48 - i * 0.05, 0.11, 0.15),
+                       (0, -0.26 - i * 0.12, 0.44 - i * 0.05),
                        rot=(-14 - 8 * i, 0, 0), color=HULL))
     for side, sign in (("L", 1), ("R", -1)):
-        body.append(_b("body.flank.%s" % side, (0.06, 0.44, 0.36),
-                       (sign * 0.26, -0.04, 0.76), color=PLATE_MID))
-    # The reactor. This one part has to carry the price tag, so it is a lit
-    # core inside a machined collar inside a bone-white armour frame.
-    body.append(_b("body.frame", (0.36, 0.07, 0.36), (0, 0.26, 0.84),
+        body.append(_b("body.flank.%s" % side, (0.07, 0.46, 0.38),
+                       (sign * 0.27, -0.04, 0.80), color=HULL))
+        body.append(_b("body.grille.%s" % side, (0.035, 0.30, 0.24),
+                       (sign * 0.31, -0.02, 0.78), color=PLATE_DK))
+
+    # ---- the reactor -----------------------------------------------------
+    # One part has to carry a four-billion-dollar price tag, so this is it:
+    # a white-hot core in a machined collar, ringed by a hazard-gold halo and
+    # bolted into a pale armour frame. It is the first thing the eye finds on
+    # the sheet and the thing the 24px icon is recognised by.
+    body.append(_b("body.frame", (0.40, 0.08, 0.40), (0, 0.26, 0.88),
                    color=HULL))
-    body.append(_b("body.collar", (0.26, 0.06, 0.26), (0, 0.29, 0.84),
+    body.append(_b("body.collar", (0.28, 0.07, 0.28), (0, 0.30, 0.88),
                    color=STEEL_DK))
-    body += bk.gem("body.core", (0, 0.35, 0.84), size=0.24, color=REDG,
-                   strength=6.5)
-    body += bk.ring("body.halo", (0, 0.31, 0.84), radius=0.24, thickness=0.022,
-                    tilt=90, color=REDG, strength=3.0)
+    body += bk.gem("body.core", (0, 0.35, 0.88), size=0.22, color=REDG,
+                   strength=7.0)
+    body += bk.ring("body.halo", (0, 0.33, 0.88), radius=0.25, thickness=0.024,
+                    tilt=90, color=HAZARD, strength=3.2)
     for i in range(4):
         ang = 45 + i * 90
-        body.append(_b("body.bolt%d" % i, (0.045, 0.045, 0.045),
-                       (math.sin(math.radians(ang)) * 0.175, 0.28,
-                        0.84 + math.cos(math.radians(ang)) * 0.175),
-                       color=STEEL_LT))
-    # Layered shoulder armour with hazard tape on the caps.
+        body.append(_b("body.bolt%d" % i, (0.055, 0.055, 0.055),
+                       (math.sin(math.radians(ang)) * 0.19, 0.28,
+                        0.88 + math.cos(math.radians(ang)) * 0.19),
+                       color=GOLD))
+
+    # ---- shoulders and cannons ------------------------------------------
+    # Pauldrons stop at z=1.14 and the jaw starts at 1.40. That gap is the
+    # entire reason the head reads as a head and not as more shoulder.
     for side, sign in (("L", 1), ("R", -1)):
-        body.append(_b("body.pauldron.%s" % side, (0.16, 0.32, 0.30),
-                       (sign * 0.24, 0.05, 0.96), color=PLATE_MID, seg=2))
-        body.append(_b("body.pauldron2.%s" % side, (0.14, 0.26, 0.10),
-                       (sign * 0.26, 0.03, 0.80), rot=(0, -sign * 16, 0),
-                       color=HULL))
+        body.append(_b("body.pauldron.%s" % side, (0.18, 0.34, 0.28),
+                       (sign * 0.26, 0.02, 0.96), color=PLATE_MID, seg=2))
         body += _hazard_strip("body.tape.%s" % side,
-                              (sign * 0.24, 0.05, 1.125), (0.15, 0.28, 0.035),
+                              (sign * 0.26, 0.02, 1.115), (0.17, 0.30, 0.04),
                               count=5, axis="y")
-        body.append(bk.wedge("body.spike.%s" % side, (0.06, 0.06, 0.24),
-                             (sign * 0.27, 0.00, 1.18), rot=(26, -sign * 28, 0),
+        body.append(_b("body.pauldron2.%s" % side, (0.15, 0.28, 0.11),
+                       (sign * 0.29, 0.02, 0.83), rot=(0, -sign * 16, 0),
+                       color=HULL))
+        # Swept OUT, not up: an upward spike fights the horns for the skyline.
+        body.append(bk.wedge("body.spike.%s" % side, (0.07, 0.07, 0.26),
+                             (sign * 0.40, 0.00, 1.05), rot=(10, -sign * 74, 0),
                              color=STEEL_LT, taper=0.85))
-        # Back cannons.
-        body.append(_b("body.gun.%s" % side, (0.11, 0.24, 0.11),
-                       (sign * 0.15, -0.10, 1.08), rot=(-16, 0, 0),
+        # Shoulder cannons, outboard and level, muzzles well clear of the jaw.
+        body.append(_b("body.gun.%s" % side, (0.13, 0.26, 0.13),
+                       (sign * 0.34, -0.06, 1.07), rot=(-8, 0, 0),
                        color=PLATE_DK))
-        body.append(bk.cylinder("body.barrel.%s" % side, r=0.034, h=0.26,
-                                loc=(sign * 0.15, 0.07, 1.14), rot=(74, 0, 0),
+        body.append(bk.cylinder("body.barrel.%s" % side, r=0.038, h=0.30,
+                                loc=(sign * 0.34, 0.15, 1.10), rot=(82, 0, 0),
                                 color=STEEL_DK, verts=8))
-        body.append(_b("body.muzzle.%s" % side, (0.048, 0.04, 0.048),
-                       (sign * 0.15, 0.21, 1.17), material=_emit(REDG, 3.6)))
+        body.append(_b("body.muzzle.%s" % side, (0.055, 0.045, 0.055),
+                       (sign * 0.34, 0.31, 1.11), material=_emit(REDG, 4.0)))
+        body.append(_b("body.magazine.%s" % side, (0.10, 0.12, 0.10),
+                       (sign * 0.34, -0.20, 1.04), color=HAZARD))
+
     # Spine: steel blades instead of bone spurs, each with a lit root.
     for i in range(6):
         t = i / 5.0
-        body.append(bk.wedge("body.blade%d" % i, (0.055, 0.08, 0.20 - 0.04 * t),
-                             (0, 0.14 - i * 0.13, 1.10 - t * 0.40),
-                             rot=(-18 - 8 * i, 0, 0), color=STEEL, taper=0.75))
+        body.append(bk.wedge("body.blade%d" % i, (0.06, 0.085, 0.22 - 0.04 * t),
+                             (0, 0.14 - i * 0.14, 1.12 - t * 0.42),
+                             rot=(-18 - 8 * i, 0, 0), color=GOLD, taper=0.75))
         body.append(_b("body.spark%d" % i, (0.045, 0.055, 0.022),
-                       (0, 0.14 - i * 0.13, 1.03 - t * 0.39),
+                       (0, 0.14 - i * 0.14, 1.05 - t * 0.41),
                        material=_emit(REDG, 3.2)))
     for i in range(3):
         for side, sign in (("L", 1), ("R", -1)):
             body.append(_b("body.vent.%s%d" % (side, i), (0.05, 0.18, 0.035),
-                           (sign * (0.26 - i * 0.015), -0.06 - i * 0.12,
-                            0.72 + i * 0.05),
+                           (sign * (0.28 - i * 0.015), -0.08 - i * 0.12,
+                            0.74 + i * 0.05),
                            material=_emit(REDD, 2.8)))
 
-    neck_pts = [(0, 0.18, 1.02), (0, 0.30, 1.14), (0, 0.40, 1.22)]
-    head = _tube("head.neck", neck_pts, [0.20, 0.17], [PLATE_DK, PLATE_MID])
+    # ---- neck and head ---------------------------------------------------
+    # Everything above the shoulders is paid for twice: the pet is normalised
+    # by HEIGHT, so a taller skyline shrinks the wings, the reactor and the
+    # jaw along with it. The head therefore sits as low as it can while still
+    # standing clear of the pauldrons.
+    neck_pts = [(0, 0.18, 1.02), (0, 0.30, 1.16), (0, 0.40, 1.28)]
+    head = _tube("head.neck", neck_pts, [0.21, 0.17], [PLATE_DK, PLATE_MID])
     for i, pt in enumerate(neck_pts[:2]):
-        head.append(_b("head.collar%d" % i, (0.24, 0.06, 0.24),
-                       (pt[0], pt[1] + 0.06, pt[2] + 0.07), color=STEEL_DK))
-    head_dims = (0.30, 0.32, 0.27)
-    head_at = (0, 0.55, 1.28)
-    head.append(_b("head.skull", head_dims, head_at, color=PLATE, seg=2))
-    head.append(_b("head.helm", (0.33, 0.26, 0.09), (0, 0.53, 1.46),
+        head.append(_b("head.collar%d" % i, (0.26, 0.07, 0.26),
+                       (pt[0], pt[1] + 0.06, pt[2] + 0.08), color=STEEL_DK))
+    head_dims = (0.38, 0.36, 0.31)
+    head_at = (0, 0.58, 1.38)
+    head.append(_b("head.skull", head_dims, head_at, color=PLATE_MID,
+                   seg=2))
+    head.append(_b("head.helm", (0.42, 0.32, 0.12), (0, 0.56, 1.60),
+                   color=STEEL))
+    head.append(_b("head.browtrim", (0.40, 0.10, 0.05), (0, 0.72, 1.53),
+                   color=GOLD))
+    head.append(bk.wedge("head.crest", (0.08, 0.24, 0.19), (0, 0.46, 1.71),
+                         rot=(-26, 0, 0), color=GOLD, taper=0.7))
+    head.append(_b("head.upper", (0.28, 0.32, 0.15), (0, 0.86, 1.35),
                    color=HULL))
-    head.append(bk.wedge("head.crest", (0.06, 0.20, 0.16), (0, 0.44, 1.58),
-                         rot=(-24, 0, 0), color=STEEL_LT, taper=0.7))
-    head.append(_b("head.upper", (0.22, 0.30, 0.13), (0, 0.81, 1.25),
-                   color=HULL))
-    head.append(_b("head.lower", (0.18, 0.26, 0.08), (0, 0.77, 1.13),
+    head.append(_b("head.lower", (0.24, 0.28, 0.10), (0, 0.82, 1.21),
                    rot=(9, 0, 0), color=STEEL_DK))
-    head.append(_b("head.maw", (0.16, 0.20, 0.03), (0, 0.77, 1.185),
-                   material=_emit(REDG, 4.4)))
+    head.append(_b("head.maw", (0.18, 0.22, 0.035), (0, 0.82, 1.28),
+                   material=_emit(REDG, 4.6)))
     for j in range(4):
         t = (j + 0.5) / 4.0 - 0.5
-        head.append(bk.wedge("head.tooth.u%d" % j, (0.03, 0.03, 0.06),
-                             (t * 0.16, 0.75 + abs(t) * 0.05, 1.165),
+        head.append(bk.wedge("head.tooth.u%d" % j, (0.032, 0.032, 0.065),
+                             (t * 0.17, 0.80 + abs(t) * 0.05, 1.265),
                              rot=(180, 0, 0), color=STEEL_LT, taper=0.8))
-        head.append(bk.wedge("head.tooth.l%d" % j, (0.028, 0.028, 0.055),
-                             (t * 0.14, 0.75 + abs(t) * 0.05, 1.145),
+        head.append(bk.wedge("head.tooth.l%d" % j, (0.03, 0.03, 0.06),
+                             (t * 0.15, 0.80 + abs(t) * 0.05, 1.24),
                              color=STEEL_LT, taper=0.8))
+    head += bk.nostrils("head.nose", (0, 1.00, 1.35), (0.24, 0.10, 0.14),
+                        spacing=0.5, height=0.02, size=0.034, color=PLATE_DK)
     # Optic visor plus two separate hot eyes behind it -- more machine than
     # the organic twin's simple sockets.
-    head += _optic_bar("head.visor", (0, 0.70, 1.32), (0.22, 0.05, 0.045),
-                       color=REDG, strength=5.2)
+    head += _optic_bar("head.visor", (0, 0.75, 1.47), (0.30, 0.05, 0.06),
+                       color=REDG, strength=5.6)
     for side, sign in (("L", 1), ("R", -1)):
-        head.append(_b("head.eye.%s" % side, (0.045, 0.04, 0.035),
-                       (sign * 0.13, 0.685, 1.30), material=_emit(HAZARD, 4.0)))
-        head.append(_piston("head.ram.%s" % side, (sign * 0.13, 0.60, 1.26),
-                            (sign * 0.10, 0.70, 1.15), r=0.022))
-        head.append(_b("head.cheek.%s" % side, (0.05, 0.16, 0.13),
-                       (sign * 0.14, 0.60, 1.24), color=PLATE_DK))
+        head.append(_b("head.eye.%s" % side, (0.048, 0.04, 0.038),
+                       (sign * 0.17, 0.735, 1.47), material=_emit(HAZARD, 4.4)))
+        head.append(_piston("head.ram.%s" % side, (sign * 0.14, 0.62, 1.35),
+                            (sign * 0.11, 0.74, 1.24), r=0.024))
+        head.append(_b("head.cheek.%s" % side, (0.055, 0.17, 0.14),
+                       (sign * 0.15, 0.62, 1.34), color=PLATE_DK))
+        head.append(bk.wedge("head.tusk.%s" % side, (0.04, 0.04, 0.14),
+                             (sign * 0.15, 0.76, 1.22), rot=(-118, 0, sign * 14),
+                             color=STEEL_LT, taper=0.85))
     # Horns rebuilt as swept steel with a lit tip.
     for side, sign in (("L", 1), ("R", -1)):
         head += _tube("head.horn.%s" % side,
-                      [(sign * 0.12, 0.48, 1.40), (sign * 0.18, 0.32, 1.52),
-                       (sign * 0.21, 0.14, 1.55)],
-                      [0.06, 0.042], [STEEL_DK, STEEL])
-        head.append(bk.wedge("head.hornv.%s" % side, (0.038, 0.038, 0.11),
-                             (sign * 0.22, 0.06, 1.55), rot=(-104, 0, 0),
+                      [(sign * 0.15, 0.50, 1.55), (sign * 0.27, 0.32, 1.70),
+                       (sign * 0.34, 0.10, 1.74)],
+                      [0.085, 0.058], [GOLD, STEEL_LT])
+        head.append(bk.wedge("head.hornv.%s" % side, (0.04, 0.04, 0.12),
+                             (sign * 0.35, 0.01, 1.74), rot=(-104, 0, 0),
                              color=STEEL_LT, taper=0.9))
-        head.append(_b("head.horntip.%s" % side, (0.035, 0.035, 0.035),
-                       (sign * 0.22, 0.00, 1.55), material=_emit(REDG, 3.6)))
+        head.append(_b("head.horntip.%s" % side, (0.038, 0.038, 0.038),
+                       (sign * 0.35, -0.06, 1.74), material=_emit(REDG, 3.8)))
 
-    # Jet wings: armour panels, a thruster pod on each spar, exhaust behind.
-    wing_pivot = (0.22, 0.02, 1.00)
-    parts = [_b("wing.L.panel", (0.64, 0.05, 0.50), (0.55, -0.06, 1.04),
-                rot=(0, -24, 0), color=PLATE)]
-    parts.append(_b("wing.L.panel2", (0.42, 0.045, 0.34), (0.74, -0.14, 0.76),
-                   rot=(0, -38, 0), color=PLATE_DK))
-    parts.append(_b("wing.L.armour", (0.32, 0.06, 0.24), (0.38, 0.02, 1.14),
-                   rot=(0, -20, 0), color=HULL))
-    parts.append(_b("wing.L.plate", (0.34, 0.05, 0.16), (0.56, -0.02, 0.94),
-                   rot=(0, -30, 0), color=HULL))
-    parts.append(_b("wing.L.spar", (0.70, 0.06, 0.07), (0.55, -0.02, 1.26),
-                   rot=(0, -12, 0), color=STEEL_LT))
-    parts.append(_b("wing.L.edge", (0.66, 0.05, 0.035), (0.56, -0.09, 1.20),
-                   rot=(0, -22, 0), material=_emit(REDG, 2.4)))
-    for j in range(3):
-        t = (j + 1) / 4.0
-        parts.append(_b("wing.L.rib%d" % j, (0.04, 0.055, 0.48 - 0.07 * j),
-                        (0.26 + t * 0.62, -0.06, 1.06 - t * 0.11),
-                        rot=(0, 8 + 14 * j, 0), color=STEEL_DK))
-    for j, (x, z) in enumerate(((0.38, 1.10), (0.66, 0.98), (0.24, 0.88))):
-        parts.append(_b("wing.L.pod%d" % j, (0.10, 0.22, 0.10), (x, -0.10, z),
+    # ---- wings -----------------------------------------------------------
+    # The widest thing in the library. Panels are HULL, not PLATE: a dark wing
+    # on a dark background is a hole in the silhouette, and the wingspan is
+    # most of why this pet reads as the top of the ladder.
+    wing_pivot = (0.24, -0.02, 1.00)
+    parts = [_b("wing.L.panel", (0.86, 0.055, 0.58), (0.68, -0.08, 1.04),
+                rot=(0, -30, 0), color=STEEL)]
+    parts.append(_b("wing.L.panel2", (0.50, 0.05, 0.40), (1.02, -0.18, 0.72),
+                   rot=(0, -48, 0), color=HULL))
+    parts.append(_b("wing.L.armour", (0.34, 0.065, 0.26), (0.42, 0.02, 1.14),
+                   rot=(0, -22, 0), color=STEEL_DK))
+    parts.append(_b("wing.L.spar", (0.94, 0.07, 0.085), (0.68, -0.01, 1.30),
+                   rot=(0, -16, 0), color=GOLD))
+    parts.append(_b("wing.L.edge", (0.84, 0.05, 0.04), (0.68, -0.12, 1.20),
+                   rot=(0, -28, 0), material=_emit(REDG, 2.6)))
+    for j in range(4):
+        t = (j + 1) / 5.0
+        parts.append(_b("wing.L.rib%d" % j, (0.045, 0.06, 0.56 - 0.07 * j),
+                        (0.28 + t * 0.84, -0.07, 1.06 - t * 0.14),
+                        rot=(0, 8 + 13 * j, 0), color=GOLD))
+    # Scalloped trailing edge. Without these three points the wing is a
+    # rectangle bolted to a robot; with them the outline is a dragon's.
+    for j, (x, z, s) in enumerate(((0.58, 0.50, 0.26), (0.82, 0.63, 0.22),
+                                   (1.04, 0.76, 0.18))):
+        parts.append(bk.wedge("wing.L.point%d" % j, (s * 0.5, 0.05, s),
+                              (x, -0.08, z), rot=(180, 0, 0), color=PLATE_MID,
+                              taper=0.75))
+    # Thruster pods: pod, hazard band, jet, and a trail block behind it. Three
+    # per wing is what makes the thing read as powered, not merely armoured.
+    for j, (x, z) in enumerate(((0.44, 1.06), (0.84, 0.92), (0.28, 0.84))):
+        parts.append(_b("wing.L.pod%d" % j, (0.11, 0.24, 0.11), (x, -0.12, z),
                         color=PLATE_MID))
-        parts.append(_b("wing.L.jet%d" % j, (0.08, 0.05, 0.08),
-                        (x, -0.22, z - 0.01), material=_emit(REDG, 5.2)))
-        parts.append(_b("wing.L.trail%d" % j, (0.055, 0.11, 0.055),
-                        (x, -0.33, z - 0.02), material=_emit("#ff9a5a", 2.6)))
-    parts += bk.ring("wing.L.vent", (0.30, 0.04, 1.02), radius=0.10,
-                     thickness=0.016, tilt=90, color=REDG, strength=2.8)
-    parts.append(bk.wedge("wing.L.claw", (0.045, 0.045, 0.14), (0.90, 0.0, 1.30),
+        parts.append(_b("wing.L.band%d" % j, (0.12, 0.05, 0.12), (x, -0.02, z),
+                        color=HAZARD))
+        parts.append(_b("wing.L.jet%d" % j, (0.085, 0.05, 0.085),
+                        (x, -0.25, z - 0.01), material=_emit(REDG, 5.4)))
+        parts.append(_b("wing.L.trail%d" % j, (0.06, 0.13, 0.06),
+                        (x, -0.37, z - 0.02), material=_emit("#ff9a5a", 2.8)))
+    parts.append(bk.wedge("wing.L.claw", (0.05, 0.05, 0.17), (1.20, 0.0, 1.32),
                           rot=(-90, -40, 0), color=STEEL_LT, taper=0.85))
     wing_l = _join("wing.L", parts, wing_pivot)
     wing_r = _mirror(wing_l, "wing.R")
 
-    arm_pivot = (0.18, 0.16, 0.78)
-    parts = _tube("arm.L.seg", [arm_pivot, (0.27, 0.30, 0.62), (0.25, 0.34, 0.46)],
-                  [0.08, 0.065], [PLATE_MID, PLATE_DK])
-    parts.append(_b("arm.L.guard", (0.11, 0.12, 0.11), (0.24, 0.24, 0.56),
+    arm_pivot = (0.19, 0.16, 0.80)
+    parts = _tube("arm.L.seg", [arm_pivot, (0.28, 0.32, 0.64), (0.26, 0.36, 0.48)],
+                  [0.085, 0.068], [HULL, PLATE_MID])
+    parts.append(_b("arm.L.guard", (0.12, 0.13, 0.12), (0.25, 0.26, 0.58),
                     color=STEEL_DK))
     for j, dx in enumerate((-0.04, 0.0, 0.04)):
-        parts.append(bk.wedge("arm.L.claw%d" % j, (0.03, 0.03, 0.11),
-                              (0.25 + dx, 0.39, 0.42), rot=(-118, 0, 0),
+        parts.append(bk.wedge("arm.L.claw%d" % j, (0.032, 0.032, 0.12),
+                              (0.26 + dx, 0.41, 0.44), rot=(-118, 0, 0),
                               color=STEEL_LT, taper=0.85))
     arm_l = _join("arm.L", parts, arm_pivot)
     arm_r = _mirror(arm_l, "arm.R")
 
     legs = {}
-    hip = (0.21, -0.30, 0.52)
+    hip = (0.22, -0.32, 0.54)
     parts = _tube("leg.BL.seg",
-                  [hip, (0.26, -0.47, 0.40), (0.24, -0.24, 0.16)],
-                  [0.15, 0.115], [PLATE_MID, PLATE_DK])
-    parts.append(_piston("leg.BL.ram", (0.21, -0.38, 0.46), (0.24, -0.26, 0.20),
-                         r=0.026))
-    parts.append(_b("leg.BL.knee", (0.15, 0.13, 0.13), (0.26, -0.47, 0.40),
+                  [hip, (0.28, -0.50, 0.40), (0.25, -0.24, 0.16)],
+                  [0.16, 0.12], [HULL, PLATE_MID])
+    parts.append(_piston("leg.BL.ram", (0.22, -0.40, 0.47), (0.25, -0.26, 0.20),
+                         r=0.028))
+    parts.append(_b("leg.BL.knee", (0.16, 0.14, 0.14), (0.28, -0.50, 0.40),
                     color=STEEL_DK))
-    parts.append(_b("leg.BL.foot", (0.16, 0.25, 0.07), (0.24, -0.14, 0.04),
-                    color=PLATE))
-    for j, dx in enumerate((-0.05, 0.0, 0.05)):
-        parts.append(bk.wedge("leg.BL.claw%d" % j, (0.034, 0.034, 0.11),
-                              (0.24 + dx, -0.01, 0.04), rot=(-96, 0, 0),
+    parts.append(_b("leg.BL.foot", (0.17, 0.26, 0.075), (0.25, -0.13, 0.04),
+                    color=PLATE_MID))
+    for j, dx in enumerate((-0.055, 0.0, 0.055)):
+        parts.append(bk.wedge("leg.BL.claw%d" % j, (0.036, 0.036, 0.12),
+                              (0.25 + dx, 0.0, 0.04), rot=(-96, 0, 0),
                               color=STEEL_LT, taper=0.85))
     leg_bl = _join("leg.BL", parts, hip)
     legs["leg.BL"] = leg_bl
     legs["leg.BR"] = _mirror(leg_bl, "leg.BR")
 
-    tail_pts = [(0, -0.46, 0.52), (0, -0.62, 0.46), (0, -0.78, 0.38),
-                (0, -0.90, 0.28), (0, -0.98, 0.17)]
-    tail = _tube("tail.seg", tail_pts, [0.21, 0.17, 0.13, 0.095],
+    tail_pts = [(0, -0.48, 0.54), (0, -0.66, 0.48), (0, -0.84, 0.39),
+                (0, -0.98, 0.28), (0, -1.08, 0.16)]
+    tail = _tube("tail.seg", tail_pts, [0.22, 0.18, 0.14, 0.10],
                  [PLATE, PLATE_MID])
     for i in range(4):
-        tail.append(_b("tail.ring%d" % i, (0.20 - i * 0.035, 0.04,
-                                           0.20 - i * 0.035),
-                       (0, -0.55 - i * 0.15, 0.49 - i * 0.10), color=STEEL_DK))
-        tail.append(bk.wedge("tail.blade%d" % i, (0.045, 0.06, 0.14 - 0.02 * i),
-                             (0, -0.53 - i * 0.15, 0.60 - i * 0.09),
+        tail.append(_b("tail.ring%d" % i, (0.21 - i * 0.035, 0.045,
+                                           0.21 - i * 0.035),
+                       (0, -0.58 - i * 0.16, 0.51 - i * 0.10), color=STEEL_DK))
+        tail.append(bk.wedge("tail.blade%d" % i, (0.048, 0.065, 0.15 - 0.02 * i),
+                             (0, -0.56 - i * 0.16, 0.63 - i * 0.10),
                              rot=(-42 - 12 * i, 0, 0), color=STEEL, taper=0.75))
-    tail.append(bk.cylinder("tail.nozzle", r=0.075, h=0.09, loc=(0, -1.02, 0.13),
+    tail.append(bk.cylinder("tail.nozzle", r=0.085, h=0.10, loc=(0, -1.13, 0.11),
                             rot=(56, 0, 0), color=PLATE_DK, verts=10))
-    tail.append(_b("tail.burn", (0.09, 0.06, 0.09), (0, -1.08, 0.09),
-                   material=_emit(REDG, 5.0)))
-    tail.append(_b("tail.trail", (0.06, 0.10, 0.06), (0, -1.15, 0.05),
-                   material=_emit("#ff9a5a", 2.6)))
+    tail.append(_b("tail.burn", (0.10, 0.07, 0.10), (0, -1.20, 0.07),
+                   material=_emit(REDG, 5.2)))
+    tail.append(_b("tail.trail", (0.065, 0.12, 0.065), (0, -1.29, 0.03),
+                   material=_emit("#ff9a5a", 2.8)))
 
     groups = {
-        "body": (body, (0, -0.06, 0.46)),
-        "head": (head, (0, 0.14, 0.96)),
+        "body": (body, (0, -0.06, 0.48)),
+        "head": (head, (0, 0.14, 0.98)),
         "wing.L": ([wing_l], tuple(wing_l.location)),
         "wing.R": ([wing_r], tuple(wing_r.location)),
         "arm.L": ([arm_l], tuple(arm_l.location)),
         "arm.R": ([arm_r], tuple(arm_r.location)),
-        "tail": (tail, (0, -0.42, 0.52)),
+        "tail": (tail, (0, -0.44, 0.54)),
     }
     for key, obj in legs.items():
         groups[key] = ([obj], tuple(obj.location))
     _assemble(root, groups)
     return bk.finish(root)
-
 
 PETS = {
     "mecha-scorpio": build_mecha_scorpio,

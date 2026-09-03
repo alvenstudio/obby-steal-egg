@@ -373,10 +373,34 @@ def apply_transforms(obj, location=False, rotation=True, scale=True):
 
 
 def set_origin_to(obj, point):
-    """Move the object's origin to a world-space point without moving geometry."""
-    offset = obj.matrix_world.translation - Vector(point)
+    """
+    Move the object's origin to a world-space point without moving geometry.
+
+    The offset has to be converted out of world space before it touches vertex
+    coordinates, which are local. Adding a world delta straight to `vert.co`
+    is only correct when the object has identity rotation and scale -- and
+    almost nothing here does, because blockkit carries every box's dimensions
+    in object *scale*. Skipping the conversion silently displaces the geometry
+    by (1/scale - 1) times the offset, which for a squashed part is a large
+    fraction of its own size, and for a rotated one sends it somewhere else
+    entirely.
+
+    That matters far more than it sounds: `group()` joins parts into the first
+    one and then calls this, so a single mis-shifted part drags the whole
+    welded group with it, and the error then feeds into height normalisation
+    and rescales the entire creature.
+    """
+    world_offset = obj.matrix_world.translation - Vector(point)
+    basis = obj.matrix_world.to_3x3()
+    try:
+        local_offset = basis.inverted() @ world_offset
+    except ValueError:
+        # A zero-scaled axis is not invertible; the geometry is degenerate
+        # anyway, so fall back rather than aborting a whole build.
+        local_offset = world_offset
     for vert in obj.data.vertices:
-        vert.co += offset
+        vert.co += local_offset
+    obj.data.update()
     obj.location = Vector(point)
     return obj
 
